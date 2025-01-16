@@ -2,7 +2,6 @@ using Dapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using MyApiDapper.Models;
 
 namespace MyApiDapper.Controllers
 {
@@ -10,49 +9,61 @@ namespace MyApiDapper.Controllers
     [ApiController]
     public class WageController : ControllerBase
     {
-        private readonly string conn;
+        private readonly string _connectionString;
 
         public WageController(IConfiguration configuration)
         {
-            conn = configuration.GetConnectionString("dbcs");
-
-            //  Console.WriteLine($"Connection string: {conn}");
+            _connectionString = configuration.GetConnectionString("dbcs");
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
         {
             try
             {
-               string query = "SELECT W.LocationCode As Loc_Code ,W.LocationNM As Loc_Name,W.AadharNo" +
-                    ",(select top 1 Sex from App_EmployeeMaster where AadharCard=w.AadharNo order by CreatedOn desc) " +
-                    "Gender,W.WorkManCategory As Skill,CONCAT(W.YearWage, RIGHT('0' + CAST(W.MonthWage AS VARCHAR(2)), 2)) AS YrMonth" +
-                    ",W.VendorCode,W.VendorName," +
-                    "W.WorkOrderNo," +
-                    "(select top 1 DepartmentCode from App_DepartmentMaster " +
-                    "where DepartmentName=(select top 1 DEPT_CODE from App_WorkOrder_Reg where WO_NO=w.WorkOrderNo) ) DeptCode," +
-                    "(select top 1 DEPT_CODE from App_WorkOrder_Reg where WO_NO=w.WorkOrderNo )" +
-                    " DeptName, W.TotPaymentDays As PaymentDays,'TSUISL' As EXECHEAD,W.TotalWages  As GrossWage," +
-                    "W.BasicWages as Basic,W.DAWages as Da FROM App_WagesDetailsJharkhand w" +
-                    " where MonthWage in ('12') and YearWage in ('2024' )";
+                string query = @"
+                SELECT 
+                    W.LocationCode AS Loc_Code,
+                    W.LocationNM AS Loc_Name,
+                    W.AadharNo,
+                    (SELECT TOP 1 Sex FROM App_EmployeeMaster 
+                     WHERE AadharCard = W.AadharNo 
+                     ORDER BY CreatedOn DESC) AS Gender,
+                    W.WorkManCategory AS Skill,
+                    CONCAT(W.YearWage, RIGHT('0' + CAST(W.MonthWage AS VARCHAR(2)), 2)) AS YrMonth,
+                    W.VendorCode,
+                    W.VendorName,
+                    W.WorkOrderNo,
+                    (SELECT TOP 1 DepartmentCode FROM App_DepartmentMaster 
+                     WHERE DepartmentName = 
+                         (SELECT TOP 1 DEPT_CODE FROM App_WorkOrder_Reg 
+                          WHERE WO_NO = W.WorkOrderNo)) AS DeptCode,
+                    (SELECT TOP 1 DEPT_CODE FROM App_WorkOrder_Reg 
+                     WHERE WO_NO = W.WorkOrderNo) AS DeptName,
+                    W.TotPaymentDays AS PaymentDays,
+                    'TSUISL' AS EXECHEAD,
+                    W.TotalWages AS GrossWage,
+                    W.BasicWages AS Basic,
+                    W.DAWages AS Da
+                FROM App_WagesDetailsJharkhand W
+                WHERE 
+                    CONCAT(W.YearWage, '-', RIGHT('0' + CAST(W.MonthWage AS VARCHAR(2)), 2), '-01') 
+                    BETWEEN @FromDate AND @ToDate";
 
-                using (var connection = new SqlConnection(conn))
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    var result = connection.Query(query);
+                    var result = await connection.QueryAsync(query, new { FromDate = fromDate, ToDate = toDate });
 
+                    // Return the result as JSON
+                    return Ok(result);
                 }
             }
             catch (Exception ex)
             {
-
-                Console.WriteLine("The Exception is :\n" + ex.Message);
-                return BadRequest(ex.Message);
+                // Log the error (improve with a logging library like Serilog)
+                Console.WriteLine("The Exception is:\n" + ex.Message);
+                return BadRequest(new { Error = ex.Message });
             }
-            return Ok();
         }
-
-
-
     }
 }
