@@ -1,58 +1,28 @@
-DECLARE @DynamicColumns NVARCHAR(MAX);
-DECLARE @SQLQuery NVARCHAR(MAX);
+DECLARE @columns NVARCHAR(MAX), @sql NVARCHAR(MAX);
 
--- Step 1: Generate dynamic columns based on actual attendance days in the data
-SELECT 
-    @DynamicColumns = STRING_AGG(QUOTENAME(DAY(ML.Dates)), ',')
-FROM (
-    SELECT DISTINCT 
-        DATEPART(DAY, ML.Dates) AS DayOfMonth
-    FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
-    LEFT JOIN App_AttendanceDetails AS ad 
-    ON ML.Dates = AD.Dates
-    WHERE 
-        AD.VendorCode = '17201' 
-        AND DATEPART(MONTH, AD.Dates) = '10' 
-        AND DATEPART(YEAR, AD.Dates) = '2024' 
-        AND AD.AadharNo = '275225445020'
-) AS Days;
+-- Generate dynamic column list (i.e., dates for the month)
+SELECT @columns = STRING_AGG(QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23)), ', ') 
+FROM dbo.ListOfDaysByEngagementType('10','2024') AS ML
+WHERE DATEPART(month, ML.Dates) = 10 AND DATEPART(year, ML.Dates) = 2024;
 
--- Step 2: Construct the dynamic SQL query with dynamic columns
-SET @SQLQuery = '
-WITH AttendanceData AS (
-    SELECT 
-        DATEPART(DAY, ML.Dates) AS DayOfMonth,
-        ad.WorkManSl AS WorkManSLNo,
-        ad.WorkManName AS WorkManName,
-        CASE 
-            WHEN (ML.EngagementType = AD.EngagementType AND AD.Present = ''True'') 
-            THEN 1 
-            ELSE 0 
-        END AS Present
-    FROM 
-        dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
-    LEFT JOIN 
-        App_AttendanceDetails AS ad 
-    ON 
-        ML.Dates = AD.Dates
-    WHERE 
-        AD.VendorCode = ''17201'' 
-        AND DATEPART(MONTH, AD.Dates) = ''10'' 
-        AND DATEPART(YEAR, AD.Dates) = ''2024'' 
-        AND AD.AadharNo = ''275225445020''
-)
+-- Generate the dynamic SQL query
+SET @sql = '
 SELECT 
-    WorkManSLNo,
-    WorkManName, ' + @DynamicColumns + '
+    ad.WorkManSL AS WorkManSLNo,
+    ad.WorkManName AS WorkManName, ' + @columns + '
 FROM 
-    AttendanceData
-PIVOT (
-    MAX(Present) 
-    FOR DayOfMonth IN (' + @DynamicColumns + ')
-) AS PivotTable
+    (SELECT DISTINCT Dates FROM dbo.ListOfDaysByEngagementType(''10'', ''2024'') WHERE DATEPART(month, Dates) = 10 AND DATEPART(year, Dates) = 2024) AS ML
+LEFT JOIN 
+    App_AttendanceDetails AS ad ON ML.Dates = ad.Dates
+WHERE 
+    ad.VendorCode = ''17201'' 
+    AND DATEPART(month, ad.Dates) = 10 
+    AND DATEPART(year, ad.Dates) = 2024 
+    AND ad.AadharNo = ''275225445020''
+GROUP BY 
+    ad.WorkManSL, ad.WorkManName
 ORDER BY 
-    WorkManSLNo;
-';
+    ad.WorkManSL;';
 
--- Step 3: Execute the dynamic SQL query
-EXEC sp_executesql @SQLQuery;
+-- Execute the dynamic SQL
+EXEC sp_executesql @sql;
