@@ -1,3 +1,28 @@
-Select '10' as month,'2024' as year,convert(varchar,datepart(d, ML.Dates) )as Dates, ML.EngagementType, ad.WorkManSl as WorkManSLNo, ad.WorkManName as WorkManName, ad.DayDef as DayDef, case when( ML.EngagementType = AD.EngagementType and Present = 'True') then Convert(varchar,1) else Convert(varchar,0) end as Present , ad.EngagementType as Eng_Type from dbo.ListOfDaysByEngagementType('10','2024') as ML left join
+DECLARE @columns NVARCHAR(MAX), @sql NVARCHAR(MAX);
 
-App_AttendanceDetails as ad on ML.Dates = AD.Dates where AD.VendorCode = '17201' and DATEPART(month, AD.Dates)= '10' and DATEPART(year, AD.Dates)= '2024' and AadharNo='275225445020' group by ML.Dates,ML.EngagementType,AD.EngagementType,AD.WorkManSl,ad.WorkManName,AD.Present,AD.WorkOrderNo,ad.DayDef order by ML.Dates,AD.WorkManSl
+-- Generate dynamic column list (i.e., dates for the month)
+SELECT @columns = STRING_AGG(QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23)), ', ') 
+FROM dbo.ListOfDaysByEngagementType('10','2024') AS ML
+WHERE DATEPART(month, ML.Dates) = 10 AND DATEPART(year, ML.Dates) = 2024;
+
+-- Generate the dynamic SQL query
+SET @sql = '
+SELECT 
+    ad.WorkManSL AS WorkManSLNo,
+    ad.WorkManName AS WorkManName, ' + @columns + '
+FROM 
+    dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
+LEFT JOIN 
+    App_AttendanceDetails AS ad ON ML.Dates = ad.Dates
+WHERE 
+    ad.VendorCode = ''17201'' 
+    AND DATEPART(month, ad.Dates) = 10 
+    AND DATEPART(year, ad.Dates) = 2024 
+    AND ad.AadharNo = ''275225445020''
+GROUP BY 
+    ad.WorkManSL, ad.WorkManName
+ORDER BY 
+    ad.WorkManSL;';
+
+-- Execute the dynamic SQL
+EXEC sp_executesql @sql;
