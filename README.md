@@ -23,6 +23,7 @@ WITH AttendanceData AS (
 SELECT 
     WorkManSLNo,
     WorkManName,
+    -- Dynamically create columns for the days present in the data
     MAX(CASE WHEN DayOfMonth = 1 THEN Present ELSE 0 END) AS [Day 1],
     MAX(CASE WHEN DayOfMonth = 2 THEN Present ELSE 0 END) AS [Day 2],
     MAX(CASE WHEN DayOfMonth = 3 THEN Present ELSE 0 END) AS [Day 3],
@@ -61,4 +62,3 @@ GROUP BY
     WorkManName
 ORDER BY 
     WorkManSLNo;
-    
