@@ -1,7 +1,12 @@
 DECLARE @columns NVARCHAR(MAX), @sql NVARCHAR(MAX);
 
--- Generate dynamic column list (i.e., dates for the month)
-SELECT @columns = STRING_AGG(QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23)), ', ') 
+-- Generate dynamic column list (i.e., CASE statements for each day)
+SELECT @columns = STRING_AGG(
+    'MAX(CASE WHEN ML.Dates = ''' + CONVERT(VARCHAR, ML.Dates, 23) + ''' THEN 
+        CASE WHEN (ML.EngagementType = ad.EngagementType AND ad.Present = ''True'') THEN ''Present'' ELSE ''Absent'' END
+    END) AS ' + QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23)),
+    ', '
+)
 FROM dbo.ListOfDaysByEngagementType('10','2024') AS ML
 WHERE DATEPART(month, ML.Dates) = 10 AND DATEPART(year, ML.Dates) = 2024;
 
@@ -11,7 +16,7 @@ SELECT
     ad.WorkManSL AS WorkManSLNo,
     ad.WorkManName AS WorkManName, ' + @columns + '
 FROM 
-    (SELECT DISTINCT Dates FROM dbo.ListOfDaysByEngagementType(''10'', ''2024'') WHERE DATEPART(month, Dates) = 10 AND DATEPART(year, Dates) = 2024) AS ML
+    dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
 LEFT JOIN 
     App_AttendanceDetails AS ad ON ML.Dates = ad.Dates
 WHERE 
