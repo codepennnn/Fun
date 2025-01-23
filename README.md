@@ -1,24 +1,53 @@
+DECLARE @DynamicColumns NVARCHAR(MAX);
+DECLARE @SQLQuery NVARCHAR(MAX);
 
-  DECLARE @DynamicColumns NVARCHAR(MAX); DECLARE @SQLQuery NVARCHAR(MAX);
+-- Generate the dynamic columns
+SELECT @DynamicColumns = STRING_AGG(QUOTENAME(DayOfMonth), ',')
+FROM (
+    SELECT DISTINCT DATEPART(DAY, ML.Dates) AS DayOfMonth
+    FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
+    LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates
+    WHERE AD.VendorCode = '17201'
+        AND DATEPART(MONTH, AD.Dates) = '10'
+        AND DATEPART(YEAR, AD.Dates) = '2024'
+        AND AD.AadharNo = '275225445020'
+) AS Days;
 
- SELECT @DynamicColumns = STRING_AGG(QUOTENAME(DayOfMonth), ',') FROM
- ( SELECT DISTINCT DATEPART(DAY, ML.Dates) AS DayOfMonth FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
- LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates WHERE AD.VendorCode = '17201' AND DATEPART(MONTH, AD.Dates) = '10'
- AND DATEPART(YEAR, AD.Dates) = '2024' AND AD.AadharNo = '275225445020' ) AS Days;
+-- Create the dynamic SQL query
+SET @SQLQuery = '
+WITH AttendanceData AS (
+    SELECT 
+        DATEPART(DAY, ML.Dates) AS DayOfMonth,
+        ad.WorkManSl AS WorkManSLNo,
+        ad.WorkManName AS WorkManName,
+        CASE 
+            WHEN (ML.EngagementType = AD.EngagementType AND Present = ''True'') THEN ''P''
+            ELSE ''A''
+        END AS Present,
+        ad.EngagementType AS Eng_Type,
+        DATEPART(MONTH, ML.Dates) AS Month,
+        DATEPART(YEAR, ML.Dates) AS Year
+    FROM dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
+    LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates
+    WHERE AD.VendorCode = ''17201''
+        AND DATEPART(MONTH, AD.Dates) = ''10''
+        AND DATEPART(YEAR, AD.Dates) = ''2024''
+        AND AD.AadharNo = ''275225445020''
+)
 
- SET @SQLQuery = ' WITH AttendanceData AS ( SELECT DATEPART(DAY, ML.Dates) AS DayOfMonth, ad.WorkManSl AS WorkManSLNo, ad.WorkManName AS WorkManName,
+SELECT 
+    WorkManSLNo, 
+    WorkManName, 
+    Eng_Type,
+    Month,
+    Year,
+    ' + @DynamicColumns + '
+FROM AttendanceData
+PIVOT (
+    MAX(Present) FOR DayOfMonth IN (' + @DynamicColumns + ')
+) AS PivotTable
+ORDER BY WorkManSLNo;
+';
 
-
-   case when( ML.EngagementType = AD.EngagementType and Present = ''True'')
-   then Convert(varchar,1) else Convert(varchar,0) end as Present ,
-   ad.EngagementType as Eng_Type from dbo.ListOfDaysByEngagementType(''10'',''2024'')
-   as ML
-
- LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates WHERE AD.VendorCode = ''17201'' AND DATEPART(MONTH, AD.Dates) = ''10'' AND DATEPART(YEAR, AD.Dates) = ''2024'' 
- AND AD.AadharNo = ''275225445020'' ) 
- 
- 
- SELECT WorkManSLNo, WorkManName, ' + @DynamicColumns + ' FROM AttendanceData PIVOT ( MAX(Present) FOR DayOfMonth IN (' + @DynamicColumns + ') )
- AS PivotTable ORDER BY WorkManSLNo; ';
-
- EXEC sp_executesql @SQLQuery;
+-- Execute the query
+EXEC sp_executesql @SQLQuery;
