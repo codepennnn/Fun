@@ -1,14 +1,15 @@
 DECLARE @columns NVARCHAR(MAX), @sql NVARCHAR(MAX);
 
--- Generate dynamic column list (i.e., CASE statements for each day)
-SELECT @columns = STRING_AGG(
-    'MAX(CASE WHEN ML.Dates = ''' + CONVERT(VARCHAR, ML.Dates, 23) + ''' THEN 
-        CASE WHEN (ML.EngagementType = ad.EngagementType AND ad.Present = ''True'') THEN ''Present'' ELSE ''Absent'' END
-    END) AS ' + QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23)),
-    ', '
-)
-FROM dbo.ListOfDaysByEngagementType('10','2024') AS ML
-WHERE DATEPART(month, ML.Dates) = 10 AND DATEPART(year, ML.Dates) = 2024;
+-- Generate dynamic column list (i.e., CASE statements for each day) using XML
+SELECT @columns = STUFF((
+    SELECT ',' + 
+        'MAX(CASE WHEN ML.Dates = ''' + CONVERT(VARCHAR, ML.Dates, 23) + ''' THEN 
+            CASE WHEN (ML.EngagementType = ad.EngagementType AND ad.Present = ''True'') THEN ''Present'' ELSE ''Absent'' END
+        END) AS ' + QUOTENAME(CONVERT(VARCHAR, ML.Dates, 23))
+    FROM dbo.ListOfDaysByEngagementType('10','2024') AS ML
+    WHERE DATEPART(month, ML.Dates) = 10 AND DATEPART(year, ML.Dates) = 2024
+    FOR XML PATH('')
+), 1, 1, '');
 
 -- Generate the dynamic SQL query
 SET @sql = '
