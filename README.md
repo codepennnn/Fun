@@ -1,9 +1,10 @@
- DECLARE @DynamicColumns NVARCHAR(MAX); DECLARE @SQLQuery NVARCHAR(MAX);
+
+  DECLARE @DynamicColumns NVARCHAR(MAX); DECLARE @SQLQuery NVARCHAR(MAX);
 
  SELECT @DynamicColumns = STRING_AGG(QUOTENAME(DayOfMonth), ',') FROM
  ( SELECT DISTINCT DATEPART(DAY, ML.Dates) AS DayOfMonth FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
  LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates WHERE AD.VendorCode = '17201' AND DATEPART(MONTH, AD.Dates) = '10'
- AND DATEPART(YEAR, AD.Dates) = '2024' AND AD.AadharNo = '699430160267' ) AS Days;
+ AND DATEPART(YEAR, AD.Dates) = '2024' AND AD.AadharNo = '275225445020' ) AS Days;
 
  SET @SQLQuery = ' WITH AttendanceData AS ( SELECT DATEPART(DAY, ML.Dates) AS DayOfMonth, ad.WorkManSl AS WorkManSLNo, ad.WorkManName AS WorkManName,
 
@@ -14,7 +15,7 @@
    as ML
 
  LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates WHERE AD.VendorCode = ''17201'' AND DATEPART(MONTH, AD.Dates) = ''10'' AND DATEPART(YEAR, AD.Dates) = ''2024'' 
- AND AD.AadharNo = ''699430160267'' ) 
+ AND AD.AadharNo = ''275225445020'' ) 
  
  
  SELECT WorkManSLNo, WorkManName, ' + @DynamicColumns + ' FROM AttendanceData PIVOT ( MAX(Present) FOR DayOfMonth IN (' + @DynamicColumns + ') )
