@@ -1,53 +1,177 @@
-DECLARE @DynamicColumns NVARCHAR(MAX);
-DECLARE @SQLQuery NVARCHAR(MAX);
+Select  AttDtl.MasterID as MasterID,
+sum(AttDtl.OT_hrs) as OT_hrs, Year(AttDtl.Dates) as YearWage, Month(AttDtl.Dates) as MonthWage,
+AttDtl.AadharNo as AadharNo, AttDtl.VendorCode as VendorCode,EM.VendorName as VendorName,  
+EM.LabourState as StateName, LM.LOcationCode as LocationCode,  LM.Location as LocationNM,   '' as SiteID, '' as WorkSite, AttDtl.WorkOrderNo,
 
--- Generate the dynamic columns
-SELECT @DynamicColumns = STRING_AGG(QUOTENAME(DayOfMonth), ',')
-FROM (
-    SELECT DISTINCT DATEPART(DAY, ML.Dates) AS DayOfMonth
-    FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
-    LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates
-    WHERE AD.VendorCode = '17201'
-        AND DATEPART(MONTH, AD.Dates) = '10'
-        AND DATEPART(YEAR, AD.Dates) = '2024'
-        AND AD.AadharNo = '275225445020'
-) AS Days;
+AttDtl.WorkManSl as WorkManSl,   EM.Name as WorkManName, EM.WorkManCategory,  EM.ESINo as ESINo, 
+EM.UANNo as UANNo,
 
--- Create the dynamic SQL query
-SET @SQLQuery = '
-WITH AttendanceData AS (
-    SELECT 
-        DATEPART(DAY, ML.Dates) AS DayOfMonth,
-        ad.WorkManSl AS WorkManSLNo,
-        ad.WorkManName AS WorkManName,
-        CASE 
-            WHEN (ML.EngagementType = AD.EngagementType AND Present = ''True'') THEN ''P''
-            ELSE ''A''
-        END AS Present,
-        ad.EngagementType AS Eng_Type,
-        DATEPART(MONTH, ML.Dates) AS Month,
-        DATEPART(YEAR, ML.Dates) AS Year
-    FROM dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
-    LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = AD.Dates
-    WHERE AD.VendorCode = ''17201''
-        AND DATEPART(MONTH, AD.Dates) = ''10''
-        AND DATEPART(YEAR, AD.Dates) = ''2024''
-        AND AD.AadharNo = ''275225445020''
-)
+(DAY(DATEADD(m, '10' + DATEDIFF(m, 0, cast('2024'as char(4))), -1))) as TotDaysInMonth,
 
-SELECT 
-    WorkManSLNo, 
-    WorkManName, 
-    Eng_Type,
-    Month,
-    Year,
-    ' + @DynamicColumns + '
-FROM AttendanceData
-PIVOT (
-    MAX(Present) FOR DayOfMonth IN (' + @DynamicColumns + ')
-) AS PivotTable
-ORDER BY WorkManSLNo;
-';
+(DATEDIFF(ww, CAST(DATEADD(month, DATEDIFF(month, 0, '10' + '/' + '10' + '/' + '10'), 0) AS datetime) - 1, EOMONTH('10' + '/' + '10' + '/' + '10'))) as TotSunDays,
 
--- Execute the query
-EXEC sp_executesql @SQLQuery;
+
+(case when
+
+(select(Count(ah.Hdate))  from App_HolidayMaster ah
+
+where DATEPART(month, ah.Hdate) = '10' and Location = 'INSIDE O&M(TSK)' and DATEPART(year, ah.Hdate) = '10') is null then 0 else 
+
+(select(Count(ah.Hdate))
+from App_HolidayMaster ah where DATEPART(month, ah.Hdate) = '10'and Location = 'INSIDE O&M(TSK)'  and DATEPART(year, ah.Hdate) = '2024') end) 
+as TotHoliDays,
+
+((DAY(DATEADD(DD, -1, DATEADD(MM, DATEDIFF(MM, -1, '10' + '/' + '10' + '/' + '10'), 0))) - 
+DATEDIFF(ww, CAST(DATEADD(month, DATEDIFF(month, 0, '10' + '/' + '10' + '/' + '10'), 0)  AS datetime) - 1,
+EOMONTH('10' + '/' + '10' + '/' + '10'))) - 
+
+((case when(select(Count(ah.Hdate)) from App_HolidayMaster ah 
+
+where DATEPART(month, ah.Hdate) = '10'  and Location = 'INSIDE O&M(TSK)' and DATEPART(year, ah.Hdate) = '10') is null then 0 else 
+(select(Count(ah.Hdate))  from App_HolidayMaster ah  where DATEPART(month, ah.Hdate) = '10'
+
+
+
+and Location = 'INSIDE O&M(TSK)' and DATEPART(year, ah.Hdate) = '10') end)))  as TotWorkingDays,SUM(CASE WHEN AttDtl.EngagementType = 'ManPowerSupply'
+AND AttDtl.Present = 'True' THEN  case when AttDtl.DayDef = 'HF' then 0.5 else 1.00 end ELSE 0.00 END) NoOfDaysWorkedMP ,
+SUM(CASE WHEN AttDtl.EngagementType = 'ItemRate' AND AttDtl.Present = 'True' THEN 1.00 ELSE 0.00 END) NoOfDaysWorkedRate, 
+SUM(CASE WHEN AttDtl.EngagementType = 'ManPowerSupply' AND AttDtl.Present = 'False' THEN 1.00 ELSE 0.00 END) NoOfDaysAbsMP,
+
+
+(select x.Approve from App_WagesDetailsJharkhand x where x.LocationCode=LM.LocationCode and x.MasterID = AttDtl.MasterID 
+and x.WorkOrderNo = AttDtl.WorkOrderNo and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates) 
+and x.YearWage = Year(AttDtl.Dates)) Approve, 
+
+(select case when x.MonthWage is null then 0 else 1 end from App_WagesDetailsJharkhand x 
+where  x.LocationCode=AttDtl.LocationCode and  x.MasterID = AttDtl.MasterID and x.WorkOrderNo = AttDtl.WorkOrderNo 
+and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates) and x.YearWage = Year(AttDtl.Dates)) Flag,
+case when
+
+
+((select top 1 Basic_rate from App_EmployeeMaster where VendorCode = '28480' and AadharCard = AttDtl.AadharNo 
+and ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc ) > isnull(WM.Basic,0)) 
+then
+
+(select top 1 Basic_rate from App_EmployeeMaster where VendorCode = '28480' and AadharCard = AttDtl.AadharNo   and ApprvStatus = 'Approve' 
+and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc   )
+else isnull(WM.Basic,0) end as BasicRate,case when
+
+((select top 1 Da_rate from App_EmployeeMaster 
+where VendorCode = '28480' and AadharCard = AttDtl.AadharNo  and ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory 
+order by CreatedOn desc  ) > isnull(WM.DA,0)) then
+
+
+(select top 1 Da_rate from App_EmployeeMaster where VendorCode = '28480' and AadharCard = AttDtl.AadharNo
+and ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc  ) 
+else isnull(WM.DA,0) end as DARate,
+
+(select case when x.PieceRate is null then 0 else x.PieceRate end from App_WagesDetailsJharkhand x 
+where x.MasterID = AttDtl.MasterID and x.WorkOrderNo = AttDtl.WorkOrderNo and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates)
+and x.YearWage = Year(AttDtl.Dates)  and x.LocationCode=AttDtl.LocationCode) PieceRate,
+
+(select x.OverTimeAmt 
+from App_WagesDetailsJharkhand x where x.MasterID = AttDtl.MasterID and x.WorkOrderNo = AttDtl.WorkOrderNo 
+and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates)  and x.YearWage = Year(AttDtl.Dates) 
+and x.LocationCode=AttDtl.LocationCode) OverTimeAmt,
+
+(select x.CashPaymentAmt from App_WagesDetailsJharkhand x 
+where x.MasterID = AttDtl.MasterID and x.WorkOrderNo = AttDtl.WorkOrderNo and x.WorkManSl = AttDtl.WorkManSl
+and x.MonthWage = Month(AttDtl.Dates) and x.YearWage = Year(AttDtl.Dates) and x.LocationCode=AttDtl.LocationCode ) 
+CashPaymentAmt,
+
+(select x.OtherDeduAmt from App_WagesDetailsJharkhand x where x.MasterID = AttDtl.MasterID 
+and x.WorkOrderNo = AttDtl.WorkOrderNo and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates) 
+and x.YearWage = Year(AttDtl.Dates) and x.LocationCode=AttDtl.LocationCode) OtherDeduAmt,
+Case when
+
+
+((select top 1 OtherAllow from App_EmployeeMaster where VendorCode= '28480' and AadharCard = AttDtl.AadharNo  
+and ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc   )> isnull(WM.Allowance,0)) 
+then
+
+(select top 1 OtherAllow from App_EmployeeMaster where VendorCode = '28480' and AadharCard = AttDtl.AadharNo   and ApprvStatus = 'Approve'
+and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc  ) else isnull(WM.Allowance,0) 
+end as OtherAllow,Case when
+
+((select top 1 HRA from App_EmployeeMaster where VendorCode= '28480' and AadharCard = AttDtl.AadharNo and 
+ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc  )>isnull( WM.HRA,0))
+then
+
+(select top 1 HRA from App_EmployeeMaster where VendorCode = '28480' and AadharCard = AttDtl.AadharNo  
+and ApprvStatus = 'Approve' and WorkManSl=AttDtl.WorkManSl and WorkManCategory=EM.WorkManCategory order by CreatedOn desc ) else isnull(WM.HRA,0) 
+end as HRA ,
+
+
+
+
+
+
+case when
+
+
+(select sum(CAST(present AS INT)) from App_AttendanceDetails where dates in 
+
+(select ah.Hdate - 1 from App_HolidayMaster ah 
+where DATEPART(month, ah.Hdate) = '10' and DATEPART(year, ah.Hdate) = '2024'and  Location = 'INSIDE O&M(TSK)' and AadharNo = AttDtl.AadharNo 
+and WorkOrderNo = AttDtl.WorkOrderNo))>= 1 
+
+OR
+
+(select sum(CAST(present AS INT)) from App_AttendanceDetails where dates in 
+
+(select ah.Hdate + 1 from App_HolidayMaster ah where DATEPART(month, ah.Hdate) = '10' and DATEPART(year, ah.Hdate) = '2024'
+and Location = 'INSIDE O&M(TSK)' and AadharNo = AttDtl.AadharNo and WorkOrderNo = AttDtl.WorkOrderNo) )>= 1 
+
+then 
+
+
+--(select count(distinct ch.Hdate) from App_HolidayMaster ch where  DATEPART(month, ch.Hdate) = '10'
+--and DATEPART(year, ch.Hdate) = '2024'and ch.Location = 'INSIDE O&M(TSK)' ) 
+
+--modified
+
+(select count(distinct ah.Hdate)from App_HolidayMaster ah where DATEPART(month, ah.Hdate) = '10' and DATEPART(year, ah.Hdate) = '2024'and ah.Location = 'INSIDE O&M(TSK)'
+  and (exists 
+    (select 1 from App_AttendanceDetails where dates = ah.Hdate - 1 and AadharNo = AttDtl.AadharNo and WorkOrderNo = AttDtl.WorkOrderNo and CAST(present AS INT) >= 1) 
+    or exists
+    (select 1 from App_AttendanceDetails where dates = ah.Hdate + 1 and AadharNo = AttDtl.AadharNo and WorkOrderNo = AttDtl.WorkOrderNo and CAST(present AS INT) >= 1)
+       )
+) 
+
+
+
+else 0 end holiday,
+
+
+
+
+
+
+
+(select x.WeeklyAllowance from App_WagesDetailsJharkhand x where x.MasterID = AttDtl.MasterID and x.WorkOrderNo = AttDtl.WorkOrderNo 
+and x.WorkManSl = AttDtl.WorkManSl and x.MonthWage = Month(AttDtl.Dates)  and x.YearWage = Year(AttDtl.Dates)
+and x.LocationCode=AttDtl.LocationCode) WeeklyAllowance                  
+
+from App_AttendanceDetails as AttDtl  
+left join App_EmployeeMaster as EM  on AttDtl.MasterID = EM.ID 
+
+left join App_LocationMaster as LM on LM.LocationCode = AttDtl.LocationCode 
+
+
+left join App_SiteMaster as SM on SM.ID = AttDtl.SiteID 
+
+left join App_WageMaster as WM on WM.Category = EM.WorkManCategory 
+
+
+
+and WM.Juridiction = 'State' and WM.State = '9' and WM.LawFor = 'Other than Mines'and wm.MinesLaw = 'Ground'
+and wm.LocationCode = 'L_3'  and wm.EffectiveDate='10/1/2024 12:00:00 AM' where year(AttDtl.Dates) = '2024'
+and AttDtl.LocationCode = 'L_3' and month(AttDtl.Dates) = '10'and AttDtl.VendorCode = '28480'
+and AttDtl.WorkOrderNo IN 
+('4700025785','4700025725')
+group by AttDtl.MasterID,Year(AttDtl.Dates) , Month(AttDtl.Dates), AttDtl.AadharNo, AttDtl.VendorCode,  EM.VendorName ,EM.LabourState, LM.LOcationCode,
+
+LM.Location, AttDtl.WorkOrderNo,     AttDtl.WorkManSl, EM.Name,EM.WorkManCategory, 
+
+ EM.ESINo, EM.UANNo, WM.Basic, WM.DA, WM.Allowance, WM.HRA, AttDtl.LocationCode order by EM.Name  
+
