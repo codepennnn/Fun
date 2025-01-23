@@ -1,16 +1,39 @@
- Select '10' as month,'2024' as year,convert(varchar,datepart(d, ML.Dates) )as Dates,
-   ML.EngagementType,
-   ad.WorkManSl as WorkManSLNo,
-   ad.WorkManName as WorkManName, 
-   ad.DayDef as DayDef, 
-   case when( ML.EngagementType = AD.EngagementType and Present = 'True')
-   then Convert(varchar,1) else Convert(varchar,0) end as Present ,
-   ad.EngagementType as Eng_Type from dbo.ListOfDaysByEngagementType('10','2024')
-   as ML
-   left join 
-   
-   App_AttendanceDetails as ad on ML.Dates = AD.Dates
-   where AD.VendorCode = '17201'  and DATEPART(month, AD.Dates)= '10' and DATEPART(year, AD.Dates)= '2024'  and AadharNo='275225445020' 
-   group by ML.Dates,ML.EngagementType,AD.EngagementType,AD.WorkManSl,ad.WorkManName,AD.Present,AD.WorkOrderNo,ad.DayDef order by ML.Dates,AD.WorkManSl  
+DECLARE @columns NVARCHAR(MAX), @sql NVARCHAR(MAX);
 
-  
+-- Step 1: Get the list of unique dates and convert them into column names
+SELECT @columns = STRING_AGG(QUOTENAME(CONVERT(VARCHAR, ML.Dates, 101)), ', ')
+FROM (
+    SELECT DISTINCT ML.Dates
+    FROM dbo.ListOfDaysByEngagementType('10', '2024') AS ML
+    LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = ad.Dates
+    WHERE ad.VendorCode = '17201'
+    AND DATEPART(month, ad.Dates) = '10'
+    AND DATEPART(year, ad.Dates) = '2024'
+    AND ad.AadharNo = '275225445020'
+) AS DatesList;
+
+-- Step 2: Create the dynamic SQL for pivoting
+SET @sql = '
+SELECT 
+    ''10'' AS month,
+    ''2024'' AS year,
+    ad.WorkManSl AS WorkManSLNo,
+    ad.WorkManName AS WorkManName,
+    ad.DayDef AS DayDef,
+    ad.EngagementType AS Eng_Type, 
+    ' + @columns + ' 
+FROM dbo.ListOfDaysByEngagementType(''10'', ''2024'') AS ML
+LEFT JOIN App_AttendanceDetails AS ad ON ML.Dates = ad.Dates
+WHERE ad.VendorCode = ''17201''
+    AND DATEPART(month, ad.Dates) = ''10''
+    AND DATEPART(year, ad.Dates) = ''2024''
+    AND ad.AadharNo = ''275225445020''
+GROUP BY 
+    ad.WorkManSl,
+    ad.WorkManName,
+    ad.DayDef,
+    ad.EngagementType
+ORDER BY ad.WorkManSl;';
+
+-- Step 3: Execute the dynamic SQL
+EXEC sp_executesql @sql;
