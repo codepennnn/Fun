@@ -1,4 +1,18 @@
 
+SELECT * 
+FROM App_WagesDetailsJharkhand 
+WHERE 
+    (WeeklyAllowance IS NULL 
+     OR OtherDeduAmt IS NULL 
+     OR CashPaymentAmt IS NULL)
+    AND MonthWage > 8 
+    AND YearWage > 2023 
+ORDER BY VendorCode;
+
+
+
+
+.....
 select * from App_WagesDetailsJharkhand where WeeklyAllowance is null or OtherDeduAmt is null or CashPaymentAmt is null and MonthWage > 8  and YearWage > 2023 order by VendorCode
 
 Select  AttDtl.MasterID as MasterID,
