@@ -1,3 +1,6 @@
+
+select * from App_WagesDetailsJharkhand where WeeklyAllowance is null or OtherDeduAmt is null or CashPaymentAmt is null and MonthWage > 8  and YearWage > 2023 order by VendorCode
+
 Select  AttDtl.MasterID as MasterID,
 sum(AttDtl.OT_hrs) as OT_hrs, Year(AttDtl.Dates) as YearWage, Month(AttDtl.Dates) as MonthWage,
 AttDtl.AadharNo as AadharNo, AttDtl.VendorCode as VendorCode,EM.VendorName as VendorName,  
