@@ -1,3 +1,10 @@
+select * from App_Online_Wages_Details where CreatedOn >= '2024-01-01 00:00:00.00' and CreatedOn < '2025-01-01 00:00:00.00'  order by CreatedOn desc
+
+select * from App_Online_Wages where CreatedOn >= '2024-01-01 00:00:00.00' and CreatedOn < '2025-01-01 00:00:00.00'   order by CreatedOn desc
+
+
+
+
 
 SELECT * 
 FROM App_WagesDetailsJharkhand 
