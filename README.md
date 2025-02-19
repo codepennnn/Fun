@@ -1,38 +1,25 @@
 
-        bool DelResult = DeleteRelatedRecords(mn, yr, VCode, active_wo_no, location_code);
 
-                for (int i = 0; i < PageRecordDataSet.Tables[0].Rows.Count; i++)
-                {
-                    if (PageRecordDataSet.Tables["App_WagesDetailsJharkhand"].Rows[i].RowState.ToString() != "Deleted")
-                    {
-                        PageRecordDataSet.Tables[0].Rows[i].AcceptChanges();
-                        PageRecordDataSet.Tables[0].Rows[i].SetAdded();
-
-                    }
-
-                }
-
-
-
-
-                bool result = Save();
-
-
-
-
-      public bool DeleteRelatedRecords(string mn, string yr, string VCode, string WorkOrderno,string locationcode)
+private void LoadPageRecordDataSet()
+{
+    string query = "SELECT * FROM App_WagesDetailsJharkhand WHERE YearWage = @yr AND MonthWage = @mn AND VendorCode = @VCode";
+    
+    using (SqlConnection con = new SqlConnection(System.Web.Configuration.WebConfigurationManager.ConnectionStrings["connect"].ConnectionString))
+    {
+        using (SqlCommand cmd = new SqlCommand(query, con))
         {
-            SqlConnection con = new SqlConnection(System.Web.Configuration.WebConfigurationManager.ConnectionStrings["connect"].ConnectionString);
-            con.Open();
+            cmd.Parameters.AddWithValue("@yr", yr);
+            cmd.Parameters.AddWithValue("@mn", mn);
+            cmd.Parameters.AddWithValue("@VCode", VCode);
 
-            string strSQL = "Delete from App_WagesDetailsJharkhand " +
-                " where YearWage = '" + yr + "' and MonthWage = '" + mn + "' " +
-                " and VendorCode = '" + VCode + "' and WorkOrderNo IN (" + WorkOrderno + ") and LocationCode='"+ locationcode + "'      ";
+            SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            adapter.Fill(dt);
 
-            SqlCommand cmd = new SqlCommand(strSQL, con);
-            cmd.ExecuteNonQuery();
-            return true;
+            PageRecordDataSet.Tables.Clear();
+            PageRecordDataSet.Tables.Add(dt);
         }
-
+    }
+}
 
 https://wphtml.com/html/tf/duralux-demo/analytics.html
