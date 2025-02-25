@@ -1,46 +1,57 @@
+          var unsk, smsk, sk, hgsk, oth;
 
-   select  distinct top 1 NEWID() as ID, '2024' AS Period, case when  ISNUMERIC(l1.NOOF_WORKERS)=1 and  
-   ((CONVERT(float, (l1.NOOF_WORKERS))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024') 
+            for (var i = 0; i < 5; i++)
+            {
+                sum_category += parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                //alert(sum_category);
+                if (i == 0) {
+                    unsk = parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                } else if (i == 1) {
+                    smsk = parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                }
+                else if (i == 2) {
+                    sk = parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                }
+                else if (i == 3) {
+                    hgsk = parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                } else if (i == 4)
+                {
+                    oth = parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_REG_" + i).value) + parseInt(document.getElementById("MainContent_workers_Records_NO_OF_EMP_TEMP_" + i).value);
+                }
 
-   then convert(int,l1.NOOF_WORKERS) else null end as Number_Employe_Engage, case when ISNUMERIC(l1.NOOF_WORKERS)=1 and 
-   ((CONVERT(float, (l1.NOOF_WORKERS))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024') then convert(int,l1.NOOF_WORKERS)
+               
+            }
+            document.getElementById("MainContent_txtcal").value = sum_category;
 
-   else null end as Eligible_Leave, case when ISNUMERIC(l1.W_BANK)=1 and ISNUMERIC(l1.W_CASH)=1 and ISNUMERIC(l1.W_CHEQUE)=1 and
-   ((CONVERT(float, (l1.W_BANK))) + (CONVERT(float, (l1.W_CASH))) + (CONVERT(float, (l1.W_CHEQUE))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024')
+            var ll_total = document.getElementById("MainContent_txtcal").value;
+            var pre_count = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_pre_total_0").value);
+            var curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_curr_online_gp_0").value);
 
-   then convert(decimal(18,2),W_BANK)+convert(decimal(18, 2), W_CASH) + convert(decimal(18, 2), W_CHEQUE) else null end as Leave_Amnt_Payable,
-   case when ISNUMERIC(l1.W_BANK)=1 and ISNUMERIC(l1.W_CASH)=1 and ISNUMERIC(l1.W_CHEQUE)=1 and 
+            var unsk_curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_unsk_gp_0").value);
+            var smsk_curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_smsk_gp_0").value);
+            var sk_curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_sk_gp_0").value);
+            var hgsk_curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_hgsk_gp_0").value);
+            var oth_curr_online_gp = parseInt(document.getElementById("MainContent_Vendor_dtl_Record_oth_gp_0").value);
 
-   ((CONVERT(float, (l1.W_BANK))) + (CONVERT(float, (l1.W_CASH))) + (CONVERT(float, (l1.W_CHEQUE))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024')
-   then convert(decimal(18,2),W_BANK)+convert(decimal(18, 2), W_CASH) + convert(decimal(18, 2), W_CHEQUE) else null end as Leave_Amnt_Paid, 
+            var sum_previous = parseInt(unsk_curr_online_gp) + parseInt(smsk_curr_online_gp) + parseInt(sk_curr_online_gp) + parseInt(hgsk_curr_online_gp) + parseInt(oth_curr_online_gp);
+            var remain_total = parseInt(ll_total) - parseInt(sum_previous);
 
-   case when((CONVERT(float, ('0'))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024') then convert(decimal(18,2),'0')
-   else null end as Unpaid_Amnt from JCMS_C_ENTRY_DETAILS l1 where RIGHT(l1.V_CODE, 5) = '14494' and l1.WO_NO = '2500011929' and l1.c_no = 7
+            alert(sum_category);
+            alert(pre_count);
+            alert(remain_total);
+            alert(rem);
 
-   Msg 245, Level 16, State 1, Line 1011
-Conversion failed when converting the nvarchar value '1.00' to data type int.
----------------------
-
-private void LoadPageRecordDataSet()
-{
-    string query = "SELECT * FROM App_WagesDetailsJharkhand WHERE YearWage = @yr AND MonthWage = @mn AND VendorCode = @VCode";
-    
-    using (SqlConnection con = new SqlConnection(System.Web.Configuration.WebConfigurationManager.ConnectionStrings["connect"].ConnectionString))
-    {
-        using (SqlCommand cmd = new SqlCommand(query, con))
-        {
-            cmd.Parameters.AddWithValue("@yr", yr);
-            cmd.Parameters.AddWithValue("@mn", mn);
-            cmd.Parameters.AddWithValue("@VCode", VCode);
-
-            SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            adapter.Fill(dt);
-
-            PageRecordDataSet.Tables.Clear();
-            PageRecordDataSet.Tables.Add(dt);
-        }
-    }
-}
-
-https://wphtml.com/html/tf/duralux-demo/analytics.html
+            if (sum_category >= pre_count) {
+                var rem = document.getElementById("MainContent_Vendor_dtl_Record_LLWM_STRENGTH_0").value;
+               
+                if (rem >= 0) {
+                    if (sum_category > rem) {
+                        if (remain_total > rem) {
+                            alert(" Sum of all the workman category is greater than the Remaining Workman Strength for which c3 can be applied or blank please select labour license number.");
+                            document.getElementById("MainContent_txtcal").value = "";
+                        }
+                    }
+                } else {
+                    alert("Remaining Workman Strength for which c3 can be applied is blank or negative please select labour license number.");
+                    document.getElementById("MainContent_txtcal").value = "";
+                }
