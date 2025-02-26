@@ -1,29 +1,12 @@
-if (sum_category >= pre_count) {
-    var rem = document.getElementById("MainContent_Vendor_dtl_Record_LLWM_STRENGTH_0").value;
-    console.log("remain", rem);
-    debugger; // Execution will pause here, allowing inspection.
-
-    if (rem >= 0) {
-        console.log("rem is positive or zero", rem);
-        debugger;
-
-        if (sum_category > rem) {
-            console.log("sum_category is greater than rem", sum_category, rem);
-            debugger;
-
-            if (remain_total > rem) {
-                console.log("remain_total is greater than rem", remain_total, rem);
-                debugger;
-
-                alert("Sum of all the workman category is greater than the Remaining Workman Strength for which c3 can be applied or blank. Please select a labour license number.");
-                document.getElementById("MainContent_txtcal").value = "";
-            }
-        }
-    } else {
-        console.log("rem is negative or blank", rem);
-        debugger;
-
-        alert("Remaining Workman Strength for which c3 can be applied is blank or negative. Please select a labour license number.");
-        document.getElementById("MainContent_txtcal").value = "";
-    }
-}
+ select  distinct top 1 NEWID() as ID,'2024' AS Period, case when ISNUMERIC(l1.NOOF_WORKERS)=1 and  
+ ((CONVERT(float, (l1.NOOF_WORKERS))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024') then convert(int,l1.NOOF_WORKERS) else null end as Number_Employe_Engage,
+ case when  ISNUMERIC(l1.NOOF_WORKERS)=1 and ((CONVERT(float, (l1.NOOF_WORKERS))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024') then convert(int,l1.NOOF_WORKERS)
+ else null end as Eligible_Bonus, case when ISNUMERIC(l1.W_BANK)=1 and ISNUMERIC(l1.W_CASH)=1 and ISNUMERIC(l1.W_CHEQUE)=1 and 
+ ((CONVERT(float, (l1.W_BANK))) + (CONVERT(float, (l1.W_CASH))) + (CONVERT(float, (l1.W_CHEQUE))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024')
+ then convert(decimal(18,2),W_BANK)+convert(decimal(18, 2), W_CASH) + convert(decimal(18, 2), W_CHEQUE) else null end as Bonus_Amnt_Payable, case when 
+ ISNUMERIC(l1.W_BANK)=1 and ISNUMERIC(l1.W_CASH)=1 and ISNUMERIC(l1.W_CHEQUE)=1 and
+ ((CONVERT(float, (l1.W_BANK))) + (CONVERT(float, (l1.W_CASH))) + (CONVERT(float, (l1.W_CHEQUE))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024')
+ then convert(decimal(18,2),W_BANK)+convert(decimal(18, 2), W_CASH) + convert(decimal(18, 2), W_CHEQUE) else null end as Bonus_Amnt_Paid, 
+ case when((CONVERT(float, ('0'))) >= 0 and SUBSTRING(l1.proc_month, 1, 4) = '2024')
+ then convert(decimal(18,2),'0') else null end as Unpaid_Amnt from JCMS_C_ENTRY_DETAILS l1
+ where RIGHT(l1.V_CODE, 5) = '14494' and l1.WO_NO = '2500011929' and l1.c_no = 8
