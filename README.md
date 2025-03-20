@@ -1,197 +1,169 @@
-  <script type="text/javascript">
+<script type="text/javascript">
+    Chart.register(ChartDataLabels);
 
+    document.addEventListener("DOMContentLoaded", function () {
 
-        Chart.register(ChartDataLabels);
-        document.addEventListener("DOMContentLoaded", function () {
-            var hiddenField1 = document.getElementById('<%= HiddenChartData1.ClientID %>').value;
-            var chartData1 = hiddenField1.split(',').map(Number); // Convert string to array of numbers
+        // Pie Chart 1
+        var hiddenField1 = document.getElementById('<%= HiddenChartData1.ClientID %>').value;
+        var chartData1 = hiddenField1.split(',').map(Number); // Convert string to array of numbers
 
-            var hoverchart = document.getElementById('<%= HiddenChartDaysCount.ClientID %>').value;
+        var hoverChart = document.getElementById('<%= HiddenChartDaysCount.ClientID %>').value;
+        var hover = hoverChart.split(',');
 
-            var labels = ['Level1', 'Level2'];
-            var filteredData = [];
-            var filteredLabels = [];
-            var filteredColors = [];
-            var filteredhover = [];
-            var hover = hoverchart.split(',');
-            var colors = ['#f9b037', '#5a7bf9'];
+        var labels1 = ['Level1', 'Level2'];
+        var colors1 = ['#f9b037', '#5a7bf9'];
 
-            for (var i = 0; i < chartData1.length; i++) {
-                if (chartData1[i] !== 0) {
-                    filteredData.push(chartData1[i]);
-                    filteredLabels.push(labels[i]);
-                    filteredColors.push(colors[i]);
-                    filteredhover.push(hover[i]);
+        var filteredData1 = [];
+        var filteredLabels1 = [];
+        var filteredColors1 = [];
+        var filteredHover1 = [];
 
-                }
+        for (var i = 0; i < chartData1.length; i++) {
+            if (chartData1[i] !== 0) {
+                filteredData1.push(chartData1[i]);
+                filteredLabels1.push(labels1[i]);
+                filteredColors1.push(colors1[i]);
+                filteredHover1.push(hover[i]);
             }
+        }
 
-            var pieCtx1 = document.getElementById('pieChart1').getContext('2d');
-            var pieChart1 = new Chart(pieCtx1, {
-                type: 'pie',
-                data: {
-                    labels: filteredLabels,
-                    datasets: [{
-                        data: filteredData,
-                        backgroundColor: filteredColors,
-                        borderColor: filteredColors,
-                        borderWidth: 1,
-                        hh: filteredhover
-                    }]
+        var pieCtx1 = document.getElementById('pieChart1').getContext('2d');
+        var pieChart1 = new Chart(pieCtx1, {
+            type: 'pie',
+            data: {
+                labels: filteredLabels1,
+                datasets: [{
+                    data: filteredData1,
+                    backgroundColor: filteredColors1,
+                    borderColor: filteredColors1,
+                    borderWidth: 1,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: 10
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: 10
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 9
+                        }
                     },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 9
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-
-                                    let dataset = tooltipItem.dataset.data;
-
-                                    let h = tooltipItem.dataset.hh;
-
-                                    let value = dataset[tooltipItem.dataIndex] + " " + h;
-
-                                    return value; // Show number on hover
-                                }
-                            }
-                        },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                                return percentage; // Show percentage inside the pie chart
-                            },
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                let index = tooltipItem.dataIndex;
+                                return `${filteredData1[index]} (${filteredHover1[index]})`;
                             }
                         }
-                    }
-                },
-                plugins: [ChartDataLabels] // Make sure to include ChartDataLabels
-
-            });
-
-
-
-
-            /*DoughnutChart*/
-
-
-
-            var hiddenField2 = document.getElementById('<%= HiddenDonutChartData2.ClientID %>').value;
-            var chartData2 = hiddenField2.split(',').map(Number); // Convert string to array of numbers
-            var labels = ['Total','Pending With Vendor','Not Applicable','Complied','Save as Draft','Not Complied','Pending with Level 1 & Level 2'];
-            var filteredData = [];
-            var filteredLabels = [];
-            var filteredColors = [];
-            var colors = ['#f9b037', '#5a7bf9', '#f95aa4', '#f99f5a', '#f95a5a', '#2d9646','#3a376e'];
-
-            for (var i = 0; i < chartData2.length; i++) {
-                if (chartData2[i] !== 0) {
-                    filteredData.push(chartData2[i]);
-                    filteredLabels.push(labels[i]);
-                    filteredColors.push(colors[i]);
-                }
-            }
-
-
-
-            var pieCtx2 = document.getElementById('DoughnutChart').getContext('2d');
-            var pieChart2 = new Chart(pieCtx2, {
-                type: 'doughnut',
-                data: {
-                    labels: filteredLabels,
-                    datasets: [{
-                        data: filteredData,
-                        backgroundColor: filteredColors,
-                        borderColor: filteredColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: 20
                     },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'right',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 9
-                            }
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                            return percentage;
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    let dataset = tooltipItem.dataset.data;
-                                    let value = dataset[tooltipItem.dataIndex];
-                                    return value; // Show number on hover
-                                }
-                            }
-                        },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                                return percentage; // Show percentage inside the pie chart
-                            },
-                            color: '#000',
-                            font: {
-                                weight: 'bold'
-                            }
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
                         }
                     }
-                },
-                plugins: [ChartDataLabels] // Make sure to include ChartDataLabels
-            });
-
-
-            /*DualLineChart*/
-
-            
-
-
-
-     
+                }
+            }
         });
 
-     
+        // Doughnut Chart
+        var hiddenField2 = document.getElementById('<%= HiddenDonutChartData2.ClientID %>').value;
+        var chartData2 = hiddenField2.split(',').map(Number);
 
+        var labels2 = [
+            'Total', 'Pending With Vendor', 'Not Applicable',
+            'Complied', 'Save as Draft', 'Not Complied', 'Pending with Level 1 & Level 2'
+        ];
+        var colors2 = ['#f9b037', '#5a7bf9', '#f95aa4', '#f99f5a', '#f95a5a', '#2d9646', '#3a376e'];
 
+        var filteredData2 = [];
+        var filteredLabels2 = [];
+        var filteredColors2 = [];
 
+        for (var i = 0; i < chartData2.length; i++) {
+            if (chartData2[i] !== 0) {
+                filteredData2.push(chartData2[i]);
+                filteredLabels2.push(labels2[i]);
+                filteredColors2.push(colors2[i]);
+            }
+        }
+
+        var pieCtx2 = document.getElementById('DoughnutChart').getContext('2d');
+        var pieChart2 = new Chart(pieCtx2, {
+            type: 'doughnut',
+            data: {
+                labels: filteredLabels2,
+                datasets: [{
+                    data: filteredData2,
+                    backgroundColor: filteredColors2,
+                    borderColor: filteredColors2,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: 20
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 9
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                let index = tooltipItem.dataIndex;
+                                return `${filteredData2[index]}`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        formatter: (value, ctx) => {
+                            let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / sum) * 100).toFixed(1) + "%";
+                            return percentage;
+                        },
+                        color: '#000',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Dual Line Chart
         window.onload = function () {
             var hiddenField3 = document.getElementById('<%= HiddenField3.ClientID %>').value;
             var dataPoints = JSON.parse(hiddenField3);
-            var a = datapoint.map(dp => [dp.month, dp.year, dp.L1, dp.L2])
 
-        
-            alert(dataPoints);
-            var labels = dataPoints.map(dp => `${dp.month}/${dp.year}`);
-            var l1Data = dataPoints.map(dp => dp.l1);
-            var l2Data = dataPoints.map(dp => dp.l2);
+            var labels3 = dataPoints.map(dp => `${dp.month}/${dp.year}`);
+            var l1Data = dataPoints.map(dp => dp.L1);
+            var l2Data = dataPoints.map(dp => dp.L2);
 
             var ctx = document.getElementById('DualLineChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: labels3,
                     datasets: [
                         {
                             label: 'L1 Data',
@@ -211,7 +183,7 @@
                         },
                         {
                             label: 'Average (3)',
-                            data: Array(labels.length).fill(3),
+                            data: Array(labels3.length).fill(3),
                             borderColor: 'red',
                             borderWidth: 1,
                             borderDash: [5, 5],
@@ -222,7 +194,12 @@
                 },
                 options: {
                     responsive: true,
-
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
                     plugins: {
                         datalabels: {
                             color: 'black',
@@ -232,134 +209,12 @@
                                 weight: 'bold',
                                 size: 10
                             },
-                            formatter: (value, context) => {
-                                return value; // Show data labels for L1 and L2 lines
-                            },
-                            display: (context) => {
-                                // Only show data labels for L1 and L2 datasets, not for the average line
-                                return context.dataset.label !== 'Average (3)';
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                            formatter: (value) => value,
+                            display: (context) => context.dataset.label !== 'Average (3)'
                         }
                     }
-                },
-                plugins: [ChartDataLabels]
+                }
             });
-        }
-
-
-
-     <%-- pie chart--%>
-
-             <div class="">
-
-         <div class="form-inline row mt-2 justify-content-center ">
-
-              
-
-              <div class="col-sm-4" >
-                <fieldset id="F1" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
-                    <h6 class="overview-heading">Pending Application </h6>
-                   
-
-                        <div class="chart-container">
-                            <canvas id="pieChart1"></canvas>
-
-                        </div>
-                  
-                    <asp:HiddenField ID="HiddenChartData1" runat="server" />
-                    <asp:HiddenField ID="HiddenChartDaysCount" runat="server" />
-
-                </fieldset>
-
-            </div>
-
-
-             <div class="col-sm-4">
-                <fieldset id="F2" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
-
-                    <h6 class="overview-heading">Wages vendor side </h6>
-                 
-                        <div class="chart-container" >
-                            <canvas id="DoughnutChart"></canvas>
-
-                        </div>
-                   
-                    <asp:HiddenField ID="HiddenDonutChartData2" runat="server" />
-
-                </fieldset>
-
-            </div>
-
-             <div class="col-sm-4">
-                <fieldset id="Fieldset1" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
-
-               <%--  <div id="custom-legend" style="margin-top: 20px; font-family: 'Segoe UI', sans-serif;">
-        <div id="chart" style="width:650px; height:350px;"></div>
-        <div style="display: flex; gap: 20px;">
-            <div><span style="display:inline-block;width:12px;height:12px;background:#1E90FF;
-             border-radius:50%;margin-right:6px;"></span>between 1-7</div>
-            <div><span style="display:inline-block;width:12px;height:12px;background:#FF7F50;
-             border-radius:50%;margin-right:6px;"></span>between 7-14</div>
-            <div><span style="display:inline-block;width:12px;height:12px;background:#FFD700;
-             border-radius:50%;margin-right:6px;"></span>between 14-21</div>
-            <div><span style="display:inline-block;width:12px;height:12px;background:#8A2BE2;
-            border-radius:50%;margin-right:6px;"></span>After 21</div>
-        </div>
-    </div>--%>
-    <asp:HiddenField ID="radialchartdata" runat="server" />
-
-                </fieldset>
-
-            </div>
-
-
-               
-             </div>
-
-
-                   <div class="form-inline row mt-2 justify-content-center ">
-
-              
-
-              <div class="col-sm-4" >
-                <fieldset id="Fieldset2" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px;height:auto;">
-                 <h6 class="overview-heading">Level 1 & Level 2</h6>
-                   
-
-                        <div style="width:100%;overflow-x:auto;white-space:nowrap;">
-                            <canvas id="DualLineChart" style="min-width:500px;"></canvas>
-
-                        </div>
-                  
-                    <asp:HiddenField ID="HiddenField3" runat="server" />
-                  
-
-                </fieldset>
-
-
-
-            </div>
-
-
-           
-            
-
-               
-             </div>
-
-
-                 </div>
-
-
-
-
-
-
-
-    </script>
+        };
+    });
+</script>
