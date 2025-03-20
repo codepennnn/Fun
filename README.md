@@ -1,40 +1,37 @@
-Uncaught TypeError: Cannot read properties of null (reading 'value')
-    at HTMLDocument.<anonymous> (Wage_Dash_1.aspx:479:92)Understand this errorAI
-Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')
-    at HTMLDocument.<anonymous> (Wage_Dash_1.aspx:560:49)
+document.addEventListener("DOMContentLoaded", function () {
+    // Get elements safely
+    var hiddenField1 = document.getElementById('<%= HiddenChartData1.ClientID %>');
+    var hiddenField2 = document.getElementById('<%= HiddenDonutChartData2.ClientID %>');
+    var hiddenField3 = document.getElementById('<%= HiddenField3.ClientID %>');
+    var hoverchart = document.getElementById('<%= HiddenChartDaysCount.ClientID %>');
+    
+    if (!hiddenField1 || !hoverchart) {
+        console.error('Hidden fields not found in the DOM.');
+        return;
+    }
 
-     <script type="text/javascript">
+    var chartData1 = hiddenField1.value.split(',').map(Number);
+    var hover = hoverchart.value.split(',');
+    
+    var labels = ['Level1', 'Level2'];
+    var colors = ['#f9b037', '#5a7bf9'];
+    var filteredData = [];
+    var filteredLabels = [];
+    var filteredColors = [];
+    var filteredhover = [];
 
+    for (var i = 0; i < chartData1.length; i++) {
+        if (chartData1[i] !== 0) {
+            filteredData.push(chartData1[i]);
+            filteredLabels.push(labels[i]);
+            filteredColors.push(colors[i]);
+            filteredhover.push(hover[i]);
+        }
+    }
 
-        Chart.register(ChartDataLabels);
-        document.addEventListener("DOMContentLoaded", function ()
-        {
-            var hiddenField1 = document.getElementById('<%= HiddenChartData1.ClientID %>').value;
-            var chartData1 = hiddenField1.split(',').map(Number); // Convert string to array of numbers
-
-            var hoverchart = document.getElementById('<%= HiddenChartDaysCount.ClientID %>').value;          
-           
-            var labels = ['Level1', 'Level2'];
-            var filteredData = [];
-            var filteredLabels = [];
-            var filteredColors = [];
-            var filteredhover = [];
-            var hover = hoverchart.split(',');
-            var colors = ['#f9b037', '#5a7bf9'];
-
-            for (var i = 0; i < chartData1.length; i++)
-            {
-              if (chartData1[i] !== 0) {
-                filteredData.push(chartData1[i]);
-                filteredLabels.push(labels[i]);
-                  filteredColors.push(colors[i]);
-                  filteredhover.push(hover[i]);
-                  
-              }
-            }
-
-            var pieCtx1 = document.getElementById('pieChart1').getContext('2d');
-            var pieChart1 = new Chart(pieCtx1, {
+    var pieCtx1 = document.getElementById('pieChart1');
+    if (pieCtx1) {
+        var pieChart1 = new Chart(pieCtx1.getContext('2d'), {
             type: 'pie',
             data: {
                 labels: filteredLabels,
@@ -64,14 +61,10 @@ Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading
                     tooltip: {
                         callbacks: {
                             label: function (tooltipItem) {
-                                
                                 let dataset = tooltipItem.dataset.data;
-                                
                                 let h = tooltipItem.dataset.hh;
-                              
-                                let value = dataset[tooltipItem.dataIndex]+" "+h;
-                                
-                                return value; // Show number on hover
+                                let value = dataset[tooltipItem.dataIndex] + " " + h;
+                                return value;
                             }
                         }
                     },
@@ -79,7 +72,7 @@ Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading
                         formatter: (value, ctx) => {
                             let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
                             let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                            return percentage; // Show percentage inside the pie chart
+                            return percentage;
                         },
                         color: '#000',
                         font: {
@@ -88,37 +81,23 @@ Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading
                     }
                 }
             },
-                plugins: [ChartDataLabels] // Make sure to include ChartDataLabels
+            plugins: [ChartDataLabels]
+        });
+    }
 
-            });
+    // Doughnut Chart - Defensive Fix
+    if (hiddenField2) {
+        var chartData2 = hiddenField2.value.split(',').map(Number);
+        var labels = ['Total','Pending With Vendor','Not Applicable','Complied','Save as Draft','Not Complied','Pending with Level 1 & Level 2'];
+        var colors = ['#f9b037', '#5a7bf9', '#f95aa4', '#f99f5a', '#f95a5a', '#2d9646', '#3a376e'];
 
+        var filteredData = chartData2.filter(v => v !== 0);
+        var filteredLabels = labels.filter((_, i) => chartData2[i] !== 0);
+        var filteredColors = colors.filter((_, i) => chartData2[i] !== 0);
 
-
-
-            /*DoughnutChart*/
-
-
-
-            var hiddenField2 = document.getElementById('<%= HiddenDonutChartData2.ClientID %>').value;
-            var chartData2 = hiddenField2.split(',').map(Number); // Convert string to array of numbers
-            var labels = ['Total','Pending With Vendor','Not Applicable','Complied','Save as Draft','Not Complied','Pending with Level 1 & Level 2'];
-            var filteredData = [];
-            var filteredLabels = [];
-            var filteredColors = [];
-            var colors = ['#f9b037', '#5a7bf9', '#f95aa4', '#f99f5a', '#f95a5a', '#2d9646','#3a376e'];
-
-            for (var i = 0; i < chartData2.length; i++) {
-                if (chartData2[i] !== 0) {
-                    filteredData.push(chartData2[i]);
-                    filteredLabels.push(labels[i]);
-                    filteredColors.push(colors[i]);
-                }
-            }
-
-
-
-            var pieCtx2 = document.getElementById('DoughnutChart').getContext('2d');
-            var pieChart2 = new Chart(pieCtx2, {
+        var pieCtx2 = document.getElementById('DoughnutChart');
+        if (pieCtx2) {
+            new Chart(pieCtx2.getContext('2d'), {
                 type: 'doughnut',
                 data: {
                     labels: filteredLabels,
@@ -144,20 +123,11 @@ Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading
                                 padding: 9
                             }
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    let dataset = tooltipItem.dataset.data;
-                                    let value = dataset[tooltipItem.dataIndex];
-                                    return value; // Show number on hover
-                                }
-                            }
-                        },
                         datalabels: {
                             formatter: (value, ctx) => {
                                 let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 let percentage = ((value / sum) * 100).toFixed(1) + "%";
-                                return percentage; // Show percentage inside the pie chart
+                                return percentage;
                             },
                             color: '#000',
                             font: {
@@ -166,109 +136,28 @@ Wage_Dash_1.aspx:560 Uncaught TypeError: Cannot read properties of null (reading
                         }
                     }
                 },
-                plugins: [ChartDataLabels] // Make sure to include ChartDataLabels
+                plugins: [ChartDataLabels]
             });
-
-
-            /*DualLineChart*/
-
-            
-
-
-
-     
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("btnSearch").addEventListener("click", function () {
-                var hiddenField3 = document.getElementById('<%= HiddenField3.ClientID %>').value;
-        alert(hiddenField3);
-
-        if (!hiddenField3) {
-            console.log("No Data");
-            return;
         }
+    }
 
-        var dataPoints;
-        try {
-            dataPoints = JSON.parse(hiddenField3); // Ensure JSON parsing
-        } catch (error) {
-            console.error("Invalid JSON Data:", error);
-            return;
-        }
+    // Button click event fix
+    var btnSearch = document.getElementById("btnSearch");
+    if (btnSearch) {
+        btnSearch.addEventListener("click", function () {
+            if (hiddenField3) {
+                var dataPoints;
+                try {
+                    dataPoints = JSON.parse(hiddenField3.value);
+                } catch (error) {
+                    console.error("Invalid JSON Data:", error);
+                    return;
+                }
 
-        const labels = dataPoints.map(dp => `${dp.month}/${dp.year}`);
-        const l1Data = dataPoints.map(dp => dp.l1);
-        const l2Data = dataPoints.map(dp => dp.l2);
-
-        const ctx = document.getElementById('DualLineChart').getContext('2d');
-
-        Chart.register(ChartDataLabels); // Register the plugin
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'L1 Data',
-                        data: l1Data,
-                        borderColor: 'blue',
-                        backgroundColor: 'blue',
-                        fill: false,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'L2 Data',
-                        data: l2Data,
-                        borderColor: 'green',
-                        backgroundColor: 'green',
-                        fill: false,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Average (3)',
-                        data: Array(labels.length).fill(3),
-                        borderColor: 'red',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    datalabels: {
-                        color: 'black',
-                        anchor: 'end',
-                        align: 'bottom',
-                        font: {
-                            weight: 'bold',
-                            size: 10
-                        },
-                        formatter: (value) => value,
-                        display: (context) => context.dataset.label !== 'Average (3)'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
+                if (dataPoints) {
+                    console.log("Data Loaded", dataPoints);
                 }
             }
         });
-    });
-        });
-
-
-      
-
-   
-
-
-
-        
-    </script>
+    }
+});
