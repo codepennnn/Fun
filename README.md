@@ -7,6 +7,7 @@ FROM
 WHERE 
     Em.VendorCode = '15941' 
     AND Em.Curr_emp_status = 'Active'
-    AND Em.AadharCard IS NOT NULL
+    AND Em.AadharCard IS NOT NULL 
+    AND Em.AadharCard <> ''
 ORDER BY 
     Em.AadharCard DESC;
