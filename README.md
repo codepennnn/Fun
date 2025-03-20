@@ -254,7 +254,80 @@
 
 
 
-     <div class="col-sm-4" >
+     <%-- pie chart--%>
+
+             <div class="">
+
+         <div class="form-inline row mt-2 justify-content-center ">
+
+              
+
+              <div class="col-sm-4" >
+                <fieldset id="F1" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
+                    <h6 class="overview-heading">Pending Application </h6>
+                   
+
+                        <div class="chart-container">
+                            <canvas id="pieChart1"></canvas>
+
+                        </div>
+                  
+                    <asp:HiddenField ID="HiddenChartData1" runat="server" />
+                    <asp:HiddenField ID="HiddenChartDaysCount" runat="server" />
+
+                </fieldset>
+
+            </div>
+
+
+             <div class="col-sm-4">
+                <fieldset id="F2" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
+
+                    <h6 class="overview-heading">Wages vendor side </h6>
+                 
+                        <div class="chart-container" >
+                            <canvas id="DoughnutChart"></canvas>
+
+                        </div>
+                   
+                    <asp:HiddenField ID="HiddenDonutChartData2" runat="server" />
+
+                </fieldset>
+
+            </div>
+
+             <div class="col-sm-4">
+                <fieldset id="Fieldset1" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px">
+
+               <%--  <div id="custom-legend" style="margin-top: 20px; font-family: 'Segoe UI', sans-serif;">
+        <div id="chart" style="width:650px; height:350px;"></div>
+        <div style="display: flex; gap: 20px;">
+            <div><span style="display:inline-block;width:12px;height:12px;background:#1E90FF;
+             border-radius:50%;margin-right:6px;"></span>between 1-7</div>
+            <div><span style="display:inline-block;width:12px;height:12px;background:#FF7F50;
+             border-radius:50%;margin-right:6px;"></span>between 7-14</div>
+            <div><span style="display:inline-block;width:12px;height:12px;background:#FFD700;
+             border-radius:50%;margin-right:6px;"></span>between 14-21</div>
+            <div><span style="display:inline-block;width:12px;height:12px;background:#8A2BE2;
+            border-radius:50%;margin-right:6px;"></span>After 21</div>
+        </div>
+    </div>--%>
+    <asp:HiddenField ID="radialchartdata" runat="server" />
+
+                </fieldset>
+
+            </div>
+
+
+               
+             </div>
+
+
+                   <div class="form-inline row mt-2 justify-content-center ">
+
+              
+
+              <div class="col-sm-4" >
                 <fieldset id="Fieldset2" runat="server" class="" style="border: 1px solid #bfbebe; padding: 0px 0px 0px 0px; border-radius: 6px;height:auto;">
                  <h6 class="overview-heading">Level 1 & Level 2</h6>
                    
@@ -272,6 +345,16 @@
 
 
             </div>
+
+
+           
+            
+
+               
+             </div>
+
+
+                 </div>
 
 
 
