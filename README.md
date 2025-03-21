@@ -1,4 +1,4 @@
-  private void DualLineChart()
+    private void DualLineChart()
         {
             string connectionString = System.Web.Configuration.WebConfigurationManager.ConnectionStrings["connect"].ConnectionString;
 
@@ -50,3 +50,4 @@
                     }
                   }
             }
+        }
