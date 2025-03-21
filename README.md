@@ -1,4 +1,12 @@
-
-select * from App_COMPLAINT_HELP_DETAILS where   MasterID in (select * from App_COMPLAINT_HELP_REGISTER   where	VENDOR_CODE='10104')
-
-select * from App_COMPLAINT_HELP_REGISTER   where	VENDOR_CODE='10104'  order by CREATED_ON desc	
+SELECT  
+    A.MasterID,  
+    A.VENDOR_CODE,  
+    A.CREATED_ON,  
+    B.HelpDetailID,  
+    B.Description,  
+    B.Status  
+FROM App_COMPLAINT_HELP_REGISTER A  
+INNER JOIN App_COMPLAINT_HELP_DETAILS B  
+    ON A.MasterID = B.MasterID  
+WHERE A.VENDOR_CODE = '10104'  
+ORDER BY A.CREATED_ON DESC;
