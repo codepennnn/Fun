@@ -1,181 +1,89 @@
-    <style>
-        /* From Uiverse.io by kamehame-ha */
-        .cards {
-            display: flex;
-            flex-direction: row;
-            gap: 15px;
-        }
-
-
-        p {
-            color: #fff;
-        }
-
-        .cards .red {
-            background-color: #cb6274;
-        }
-
-        .cards .blue {
-            background-color: #4882e1;
-        }
-
-        .cards .green {
-            background-color: #17a74c;
-        }
-
-
-
-
-
-        .cards .yellow {
-            background-color: #c3bf58;
-        }
-
-
-        .cards .orange {
-            background-color: lightcoral;
-        }
-
-
-        .cards .purple {
-            background-color: mediumpurple;
-        }
-
-
-        .cards .card {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            height: 100px;
-            width: 250px;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            transition: 400ms;
-        }
-
-            .cards .card p.tip {
-                font-size: 1em;
-                font-weight: 700;
-            }
-
-            .cards .card p.second-text {
-                font-size: .7em;
-            }
-
-            .cards .card:hover {
-                transform: scale(1.1, 1.1);
-            }
-
-        .cards:hover > .card:not(:hover) {
-            filter: blur(10px);
-            transform: scale(0.9, 0.9);
-        }
-
-        @media (max-width: 767.98px) {
-            .cards {
-       
-            flex-wrap:wrap;
-
-               
-        }
-
-
-    </style>
-
-</asp:Content>
-
-<asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
-
-    <div class="card m-2 shadow-lg">
-        <div class="card-header bg-info text-light">
-            <h6 class="m-0">FNF ENTRY PAGE </h6>
-        </div>
-
-
-
-
-        <div class="card-body pt-1">
-            <div>
-            </div>
-            <fieldset class="" style="border: 1px solid #bfbebe; padding: 5px 20px 5px 20px; border-radius: 6px">
-                <legend style="width: auto; border: 0; font-size: 14px; margin: 0px 6px 0px 6px; padding: 0px 5px 0px 5px; color: #0000FF"><b>Full & Final Pages</b></legend>
-                <div style="margin-left: 300px">
-
-                    <span id="MainContent_employee_attach_lbl" style="color: Red; font-size: X-Large; vertical-align: central"></span>
-
-                </div>
-
-
-
-
-                <div class="container-fluid">
-
-
-
-
-
-                    <div class="cards">
-
-
-                        <div class="card red" onclick="window.location.href='FNF_StartPage.aspx'">
-                            <p class="tip"><a href="FNF_StartPage.aspx">Full & Final Excel Upload  </a></p>
-
-                        </div>
-
-
-                        <div class="card blue" onclick="window.location.href='Full_N_Final_Settlement.aspx'">
-                            <p class="tip"><a href="Full_N_Final_Settlement.aspx">Full & Final Generation</a> </p>
-
-                        </div>
-                        <div class="card green" onclick="window.location.href='../Report/Annexure_of_FormG_Report.aspxx'">
-                            <p class="tip"><a href="../Report/Annexure_of_FormG_Report.aspx">Annexure Form G Report</a></p>
-
-                        </div>
-
-                        <div class="card yellow" onclick="window.location.href='../Report/FORM_G_Confirmation_Report.aspx'">
-                            <p class="tip"><a href="../Report/FORM_G_Confirmation_Report.aspx">Form G Download</a></p>
-
-                        </div>
-
-
-                        <div class="card orange" onclick="window.location.href='FNF_FormG.aspx'">
-                            <p class="tip"><a href="FNF_FormG.aspx">Form G Upload</a></p>
-
-                        </div>
-
-                        <div class="card purple" onclick="window.location.href='../Report/FNF_Final_Report.aspx'">
-                            <p class="tip"><a href="../Report/FNF_Final_Report.aspx">Full & Final Report</a></p>
-
-                        </div>
-                    </div>
-
-
-                    <%-- <div class="row gutters justify-content-center mt-3 mb-5">
-                        <input type="submit" name="" value="EMPLOYMENT ATTACHMENT" id="MainContent_btn_attach1" class="button"/>
-                       </div>
-                 
-                      <div class="row gutters justify-content-center mt-3 mb-5">
-                        <input type="submit" name="" value="WORKMAN PROFILE ENTRY" id="MainContent_btn_emp_entry1" class="button2"/>
-                       </div>
-
-                       <div class="row gutters justify-content-center mt-3 mb-5">
-                          <input type="submit" name="" value="UPDATE WITHOUT APPROVAL" id="MainContent_Btn_Upd_without_Entry1" class="button3"/>
-                        </div>--%>
-                </div>
-
-            </fieldset>
-
-
-
-
-
-
-        </div>
-    </div>
-
-
-
-</asp:Content>
+/* Full Page Background */
+body {
+    background: url('https://source.unsplash.com/1600x900/?technology,abstract') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Card Container */
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+/* Base Card Styles */
+.cards .card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    height: 130px;
+    width: 270px;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Backgrounds with Textures */
+.cards .red {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c), url('https://source.unsplash.com/300x200/?red,pattern');
+    background-blend-mode: overlay;
+}
+
+.cards .blue {
+    background: linear-gradient(45deg, #1E90FF, #0073e6), url('https://source.unsplash.com/300x200/?blue,texture');
+    background-blend-mode: overlay;
+}
+
+.cards .green {
+    background: linear-gradient(45deg, #38ef7d, #11998e), url('https://source.unsplash.com/300x200/?green,design');
+    background-blend-mode: overlay;
+}
+
+.cards .yellow {
+    background: linear-gradient(45deg, #FFD700, #FFB400), url('https://source.unsplash.com/300x200/?yellow,abstract');
+    background-blend-mode: overlay;
+}
+
+.cards .orange {
+    background: linear-gradient(45deg, #ff7e5f, #ff6a00), url('https://source.unsplash.com/300x200/?orange,texture');
+    background-blend-mode: overlay;
+}
+
+.cards .purple {
+    background: linear-gradient(45deg, #6a11cb, #2575fc), url('https://source.unsplash.com/300x200/?purple,pattern');
+    background-blend-mode: overlay;
+}
+
+/* Glow on Hover */
+.cards .card:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 10px 25px rgba(255, 255, 255, 0.3);
+}
+
+/* Subtle Overlay Effect */
+.cards .card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cards .card:hover::after {
+    opacity: 1;
+}
