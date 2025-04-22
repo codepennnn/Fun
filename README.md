@@ -16,6 +16,12 @@
 
                 // Replace the visible text with a more general name, like "Download Attachment" or the filename
                 link.innerText = 'Download Attachment';  // Or use fileName if you prefer
+
+                // Add click event to download the file
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent default action
+                    window.location.href = url; // Redirect to the actual URL
+                });
             });
         }
     });
