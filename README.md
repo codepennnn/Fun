@@ -5,11 +5,17 @@
             list.querySelectorAll('a').forEach(link => {
                 const url = decodeURIComponent(link.href);
 
-                // Extract filename after the last underscore ('_') and add as title
+                // Extract the filename after the last underscore ('_') and show that as link text
                 const fileName = url.substring(url.lastIndexOf('_') + 1);
 
-                // Set the tooltip to show only the filename (not the full URL)
+                // Replace the href link with a dummy link to prevent it showing in the status bar
+                link.setAttribute('href', '#');
+                
+                // Optionally, set the custom title (tooltip) as the filename
                 link.setAttribute('title', fileName);
+
+                // Replace the visible text with a more general name, like "Download Attachment" or the filename
+                link.innerText = 'Download Attachment';  // Or use fileName if you prefer
             });
         }
     });
