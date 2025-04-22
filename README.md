@@ -4,8 +4,14 @@
         if (list) {
             list.querySelectorAll('a').forEach(link => {
                 const url = decodeURIComponent(link.href);
-                const fileName = url.substring(url.lastIndexOf('_') + 1);
-                link.setAttribute('title', fileName);
+
+                // Extract only the filename after the last underscore
+                let fileName = url.substring(url.lastIndexOf('_') + 1);
+
+                // Or use after last slash if filenames aren't clean
+                // let fileName = url.substring(url.lastIndexOf('/') + 1);
+
+                link.setAttribute('title', fileName.trim());
             });
         }
     });
