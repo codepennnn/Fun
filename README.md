@@ -1,28 +1,22 @@
 <script>
     window.addEventListener('DOMContentLoaded', () => {
-        const list = document.querySelector('#MainContent_Employee_Surrender_Approval_Record_Applied_NOC_Attach_Download_0');
-        if (list) {
+        // Select all <ul> with class 'attachment-list'
+        document.querySelectorAll('ul.attachment-list').forEach(list => {
             list.querySelectorAll('a').forEach(link => {
                 const url = decodeURIComponent(link.href);
-
-                // Extract the filename after the last underscore ('_') and show that as link text
                 const fileName = url.substring(url.lastIndexOf('_') + 1);
 
-                // Replace the href link with a dummy link to prevent it showing in the status bar
+                // Hide real URL
                 link.setAttribute('href', '#');
-                
-                // Optionally, set the custom title (tooltip) as the filename
                 link.setAttribute('title', fileName);
+                link.innerText = 'Download Attachment'; // or fileName
 
-                // Replace the visible text with a more general name, like "Download Attachment" or the filename
-                link.innerText = 'Download Attachment';  // Or use fileName if you prefer
-
-                // Add click event to download the file
-                link.addEventListener('click', (event) => {
-                    event.preventDefault(); // Prevent default action
-                    window.location.href = url; // Redirect to the actual URL
+                // Optional: Redirect on click
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = url;
                 });
             });
-        }
+        });
     });
 </script>
