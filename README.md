@@ -1,1 +1,4 @@
-Compiler Error Message: CS1703: An assembly with the same identity 'Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' has already been imported. Try removing one of the duplicate references.
+An error occurred during local report processing.
+The definition of the report 'App\Report\WageRegisterJharSupplement_Report.rdlc' is invalid.
+An unexpected error occurred in Report Processing.
+Could not load file or assembly 'Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91' or one of its dependencies. The system cannot find the file specified.
