@@ -53,28 +53,3 @@ SET @SQLQuery = '
 
 EXEC sp_executesql @SQLQuery;
 ";
-
-
-
-string strSQL = @"
-SELECT
-    WorkManSl,
-    WorkManName,
-    EngagementType,
-    " + int.Parse(monthwithprefix) + @" AS Month,
-    '" + year + @"' AS Year,
-    SUM(CASE WHEN Present = 'True' THEN 1 ELSE 0 END) AS TotalPresent,
-    SUM(CASE WHEN DayDef = 'LV' THEN 1 ELSE 0 END) AS Leave,
-    SUM(CASE WHEN DayDef = 'HD' THEN 1 ELSE 0 END) AS Holiday,
-    SUM(
-        CASE WHEN Present = 'True' THEN 1 ELSE 0 END +
-        CASE WHEN DayDef = 'LV' THEN 1 ELSE 0 END +
-        CASE WHEN DayDef = 'HD' THEN 1 ELSE 0 END
-    ) AS Total
-FROM App_AttendanceDetails
-WHERE VendorCode = '" + vcode + @"'
-  AND MONTH(Dates) = " + int.Parse(monthwithprefix) + @"
-  AND YEAR(Dates) = '" + year + @"'
-GROUP BY WorkManSl, WorkManName, EngagementType
-ORDER BY WorkManSl;
-";
