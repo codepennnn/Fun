@@ -1,68 +1,33 @@
-namespace ComplianceDBTS_API.Controllers
+public class CombinedDetailsDto
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DBTSController : ControllerBase
+    public object ComplianceDetails { get; set; }
+    public object LeaveDetails { get; set; }
+    public object BonusDetails { get; set; }
+}
+
+
+
+[HttpGet("AllDetails")]
+public IActionResult GetAllCombinedDetails(string WorkOrderNo, string VendorCode)
+{
+    try
     {
-        private readonly complianceDBTSService compliance;
-        private readonly ILogger<DBTSController> logger;
+        var complianceData = compliance.RR_Alert_latest(WorkOrderNo, VendorCode);
+        var leaveData = compliance.Leave_details(WorkOrderNo, VendorCode);
+        var bonusData = compliance.Bonus_details(WorkOrderNo, VendorCode);
 
-        public DBTSController(complianceDBTSService compliance,ILogger<DBTSController>logger) 
+        var result = new CombinedDetailsDto
         {
-            this.compliance = compliance;
-            this.logger = logger;
-        }
+            ComplianceDetails = complianceData,
+            LeaveDetails = leaveData,
+            BonusDetails = bonusData
+        };
 
-        [HttpGet("ComplianceDetails")]
-        public IActionResult GetAllDetails(string WorkOrderNo, string VendorCode)
-        {
-            try
-            {
-                var data = compliance.RR_Alert_latest(WorkOrderNo, VendorCode);
-
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error Occured while Getting RR_ALert_Latest");
-                return StatusCode(500, ex.Message);
-            }
-
-
-        }
-
-        [HttpGet("LeaveDetails")]
-        public IActionResult GetLeaveDetails(string WorkOrderNo, string VendorCode)
-        {
-            try
-            {
-                var data = compliance.Leave_details(WorkOrderNo, VendorCode);
-
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error Occured while Getting RR_ALert_Latest");
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpGet("BonusDetails")]
-        public IActionResult GetBonusDetails(string WorkOrderNo, string VendorCode)
-        {
-            try
-            {
-                var data = compliance.Bonus_details(WorkOrderNo, VendorCode);
-
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error Occured while Getting RR_ALert_Latest");
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        
+        return Ok(result);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error Occurred while Getting All Details");
+        return StatusCode(500, ex.Message);
     }
 }
