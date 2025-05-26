@@ -1,33 +1,45 @@
-public class CombinedDetailsDto
+this is my controller 
+namespace WorkOrderExemtionApi.Controllers
 {
-    public object ComplianceDetails { get; set; }
-    public object LeaveDetails { get; set; }
-    public object BonusDetails { get; set; }
-}
-
-
-
-[HttpGet("AllDetails")]
-public IActionResult GetAllCombinedDetails(string WorkOrderNo, string VendorCode)
-{
-    try
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ExemptionController : ControllerBase
     {
-        var complianceData = compliance.RR_Alert_latest(WorkOrderNo, VendorCode);
-        var leaveData = compliance.Leave_details(WorkOrderNo, VendorCode);
-        var bonusData = compliance.Bonus_details(WorkOrderNo, VendorCode);
+        private readonly WorkOrderExemptionDataAcess compliance;
+        private readonly ILogger<ExemptionController> logger;
 
-        var result = new CombinedDetailsDto
+        public ExemptionController(WorkOrderExemptionDataAcess compliance, ILogger<ExemptionController> logger)
         {
-            ComplianceDetails = complianceData,
-            LeaveDetails = leaveData,
-            BonusDetails = bonusData
-        };
+            this.compliance = compliance;
+            this.logger = logger;
+        }
 
-        return Ok(result);
+
     }
-    catch (Exception ex)
+
+    and this DataAcess cs 
+        public class WorkOrderExemptionDataAcess
     {
-        logger.LogError(ex, "Error Occurred while Getting All Details");
-        return StatusCode(500, ex.Message);
+        private readonly string _connectionString;
+
+        public WorkOrderExemptionDataAcess(string connectionString)
+        {
+            _connectionString = connectionString;
+
+        }
+
+
+
+
+
+
     }
-}
+
+
+
+    and i have table App_WorkOrder_Exemption
+   => i want to get data on some conditon that if approveOndate and user requestedDate difference is under with my column which name exemption_cc data then print YES else NO
+   and i am passing vendorCode and WorkOrder as a parameter my workorder data like 4700025465,4700025445 comma comma
+
+
+    
