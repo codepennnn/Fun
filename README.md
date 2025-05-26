@@ -1,45 +1,42 @@
-this is my controller 
-namespace WorkOrderExemtionApi.Controllers
+public class WorkOrderExemptionResult
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ExemptionController : ControllerBase
-    {
-        private readonly WorkOrderExemptionDataAcess compliance;
-        private readonly ILogger<ExemptionController> logger;
+    public string WorkOrder { get; set; }
+    public string VendorCode { get; set; }
+    public DateTime ApproveOnDate { get; set; }
+    public int Exemption_Cc { get; set; }
+    public string Status { get; set; } // YES or NO
+}
+-----------
 
-        public ExemptionController(WorkOrderExemptionDataAcess compliance, ILogger<ExemptionController> logger)
+public async Task<IEnumerable<WorkOrderExemptionResult>> GetExemptionsAsync(string vendorCode, string[] workOrders, DateTime requestedDate)
+{
+    using (var connection = new SqlConnection(_connectionString))
+    {
+        string sql = @"
+            SELECT WorkOrder, VendorCode, ApproveOnDate, exemption_cc
+            FROM App_WorkOrder_Exemption
+            WHERE VendorCode = @VendorCode
+              AND WorkOrder IN @WorkOrders";
+
+        var result = await connection.QueryAsync<WorkOrderExemptionResult>(sql, new { VendorCode = vendorCode, WorkOrders = workOrders });
+
+        // Process result to add Status (YES or NO)
+        foreach (var item in result)
         {
-            this.compliance = compliance;
-            this.logger = logger;
+            var diff = (requestedDate - item.ApproveOnDate).Days;
+            item.Status = diff <= item.Exemption_Cc ? "YES" : "NO";
         }
 
-
+        return result;
     }
+}
 
-    and this DataAcess cs 
-        public class WorkOrderExemptionDataAcess
-    {
-        private readonly string _connectionString;
-
-        public WorkOrderExemptionDataAcess(string connectionString)
-        {
-            _connectionString = connectionString;
-
-        }
-
-
-
-
-
-
-    }
-
-
-
-    and i have table App_WorkOrder_Exemption
-   => i want to get data on some conditon that if approveOndate and user requestedDate difference is under with my column which name exemption_cc data then print YES else NO
-   and i am passing vendorCode and WorkOrder as a parameter my workorder data like 4700025465,4700025445 comma comma
-
-
-    
+---------
+public class WorkOrderExemptionResult
+{
+    public string WorkOrder { get; set; }
+    public string VendorCode { get; set; }
+    public DateTime ApproveOnDate { get; set; }
+    public int Exemption_Cc { get; set; }
+    public string Status { get; set; } // YES or NO
+}
