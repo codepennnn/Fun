@@ -1,22 +1,17 @@
-public async Task<IEnumerable<WorkOrderExemptionResult>> GetExemptionsAsync(string vendorCode, string[] workOrders, DateTime requestedDate)
-{
-    using (var connection = new SqlConnection(_connectionString))
-    {
-        string sql = @"
-            SELECT WorkOrder, VendorCode, ApproveOnDate, exemption_cc
-            FROM App_WorkOrder_Exemption
-            WHERE VendorCode = @VendorCode
-              AND WorkOrder IN @WorkOrders";
+ID
+CreatedOn
+CreatedBy
+VendorCode
+VendorName
+WorkOrderNo
+Status
+Exemption_Vendor
+Exemption_CC
+Remarks
+Attachment
+ResubmittedOn
+ResubmittedBy
+Approved_On
+Approved_By
 
-        var result = await connection.QueryAsync<WorkOrderExemptionResult>(sql, new { VendorCode = vendorCode, WorkOrders = workOrders });
-
-        // Process result to add Status (YES or NO)
-        foreach (var item in result)
-        {
-            var diff = (requestedDate - item.ApproveOnDate).Days;
-            item.Status = diff <= item.Exemption_Cc ? "YES" : "NO";
-        }
-
-        return result;
-    }
-}
+in my table i have these coulmn and status for approve or return 
