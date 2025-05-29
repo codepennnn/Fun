@@ -1,2 +1,10 @@
-  select TO_DATE,FROM_DATE,WO_NO from App_WorkOrder_Reg  where V_CODE = '15235' and 
-  WO_NO = (select  top 1 * from App_EmployeeMaster where VendorCode = '15235' and AadharCard = '929025599977' order by CreatedOn desc )
+SELECT TO_DATE, FROM_DATE, WO_NO 
+FROM App_WorkOrder_Reg  
+WHERE V_CODE = '15235' 
+  AND WO_NO = (
+    SELECT TOP 1 WO_NO 
+    FROM App_EmployeeMaster 
+    WHERE VendorCode = '15235' 
+      AND AadharCard = '929025599977' 
+    ORDER BY CreatedOn DESC
+);
