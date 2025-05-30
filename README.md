@@ -1,10 +1,22 @@
-<div style="height:400px; overflow-y:auto; border:1px solid #ccc;">
-    <cc1:DetailsContainer ID="LeaveReportRecords" runat="server" AutoGenerateColumns="False" 
-        AllowPaging="False" CellPadding="4" GridLines="None" Width="100%" 
-        DataMember="App_Leave_Comp_Details" DataKeyNames="WorkOrderNo" 
-        DataSource="<%# PageRecordsDataSet %>" ForeColor="#333333" 
-        ShowHeaderWhenEmpty="True" OnSelectedIndexChanged="LeaveReportRecords_SelectedIndexChanged" 
-        HeaderStyle-Font-Size="Smaller" RowStyle-Font-Size="Smaller" class="w-100 border">
-        <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
-    </cc1:DetailsContainer>
-</div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+
+            document.querySelectorAll('ul.attachment-list').forEach(list => {
+                list.querySelectorAll('a').forEach(link => {
+                    const url = decodeURIComponent(link.href);
+                    const fileName = url.substring(url.lastIndexOf('_') + 1);
+
+
+                    link.setAttribute('href', '#');
+
+
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = url;
+                    });
+                });
+            });
+        });
+    </script>  
+
+     <asp:BulletedList runat="server" ID="PF_ESIAttach1" DisplayMode="HyperLink" Target="_blank" CssClass="attachment-list" />
