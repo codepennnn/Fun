@@ -1,9 +1,27 @@
-Failed to load resource: the server responded with a status of 403 (Forbidden)Understand this error
-PF_ESI_Summary_Approval.aspx:3035 Uncaught SyntaxError: Invalid or unexpected tokenUnderstand this error
-PF_ESI_Summary_Approval.aspx:361 Raw filePath: ~/Attachments/275dc2f5-67f2-41bc-9916-785419b498c1_ilovepdf_merged 65.pdf
-all.min.case:1 
-            
-            
-           Failed to load resource: the server responded with a status of 403 (Forbidden)Understand this error
-PF_ESI_Summary_Approval.aspx:367 Final URL: /Attachments/275dc2f5-67f2-41bc-9916-785419b498c1_ilovepdf_merged 65.pdf
-http://localhost:60104/App/Input/PF_ESI_Summary_Approval.aspx
+window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('ul.attachment-list li').forEach(item => {
+        item.style.cursor = 'pointer';
+        item.style.color = 'blue';
+        item.style.textDecoration = 'underline';
+
+        const filePath = item.getAttribute('data-value');
+        console.log("Raw filePath:", filePath);
+
+        if (filePath) {
+            item.addEventListener('click', () => {
+                const url = filePath.replace(/^~\//, '/');
+                console.log("Final URL:", url);
+
+                const a = document.createElement('a');
+                a.href = encodeURI(url); // Encode special characters like space
+                a.download = url.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+        }
+    });
+
+
+    http://localhost:60104/Attachments/275dc2f5-67f2-41bc-9916-785419b498c1_ilovepdf_merged%2065.pdf
+});
