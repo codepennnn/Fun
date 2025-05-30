@@ -1,22 +1,23 @@
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('ul.attachment-list li').forEach(item => {
+            item.style.cursor = 'pointer';
+            item.style.color = 'blue'; // optional: make it look clickable
 
-            document.querySelectorAll('ul.attachment-list').forEach(list => {
-                list.querySelectorAll('a').forEach(link => {
-                    const url = decodeURIComponent(link.href);
-                    const fileName = url.substring(url.lastIndexOf('_') + 1);
+            item.addEventListener('click', () => {
+                const fileName = item.textContent.trim();
+                
+                // Construct your download URL
+                const fileUrl = `/Uploads/${encodeURIComponent(fileName)}`; // Adjust this path as needed
 
-
-                    link.setAttribute('href', '#');
-
-
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        window.location.href = url;
-                    });
-                });
+                // Trigger download
+                const a = document.createElement('a');
+                a.href = fileUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             });
         });
-    </script>  
-
-     <asp:BulletedList runat="server" ID="PF_ESIAttach1" DisplayMode="HyperLink" Target="_blank" CssClass="attachment-list" />
+    });
+</script>
