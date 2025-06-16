@@ -1,15 +1,49 @@
-TRBDGDA_BD_DATE
-TRBDGDA_BD_TIME
-TRBDGDA_BD_INOUT
-TRBDGDA_BD_READER
-TRBDGDA_BD_CHKHS
-TRBDGDA_BD_SUBAREA
-TRBDGDA_BD_PNO
-TRBDGDA_BD_ENTRYDT
-TRBDGDA_BD_ENTRYUID
-TRBDGDA_BD_MODDT
-TRBDGDA_BD_MODUID
+-- Step 1: Declare date range
+WITH DateList AS (
+    SELECT CAST('2025-06-01' AS DATE) AS AttnDate
+    UNION ALL
+    SELECT DATEADD(DAY, 1, AttnDate)
+    FROM DateList
+    WHERE AttnDate < '2025-06-30'
+),
 
+-- Step 2: Get Active Employees
+ActiveEmployees AS (
+    SELECT PNO, EMPNAME  -- Adjust as needed
+    FROM App_Empl_Master
+    WHERE Discharge_Date IS NULL
+),
 
-select count(*) from App_Empl_Master where Discharge_Date is null and
-pno not in (select Distinct TRBDGDA_BD_PNO from T_TRBDGDAT_EARS where  TRBDGDA_BD_DATE='06/02/2025' )
+-- Step 3: Cross join dates with employees
+EmployeeDates AS (
+    SELECT e.PNO, e.EMPNAME, d.AttnDate
+    FROM ActiveEmployees e
+    CROSS JOIN DateList d
+),
+
+-- Step 4: Get Attendance
+Attendance AS (
+    SELECT DISTINCT TRBDGDA_BD_PNO AS PNO, TRBDGDA_BD_DATE AS AttnDate
+    FROM T_TRBDGDAT_EARS
+),
+
+-- Step 5: Combine and mark Present/Absent
+AttendanceStatus AS (
+    SELECT 
+        ed.PNO,
+        ed.EMPNAME,
+        ed.AttnDate,
+        CASE 
+            WHEN a.PNO IS NOT NULL THEN 'Present'
+            ELSE 'Absent'
+        END AS Status
+    FROM EmployeeDates ed
+    LEFT JOIN Attendance a 
+        ON ed.PNO = a.PNO AND ed.AttnDate = a.AttnDate
+)
+
+-- Final Output
+SELECT *
+FROM AttendanceStatus
+ORDER BY PNO, AttnDate
+OPTION (MAXRECURSION 1000);  -- Prevent recursion limit error
