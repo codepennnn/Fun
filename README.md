@@ -1,22 +1,15 @@
-SELECT  
-  'Govt. Notice' AS Modules,
+TRBDGDA_BD_DATE
+TRBDGDA_BD_TIME
+TRBDGDA_BD_INOUT
+TRBDGDA_BD_READER
+TRBDGDA_BD_CHKHS
+TRBDGDA_BD_SUBAREA
+TRBDGDA_BD_PNO
+TRBDGDA_BD_ENTRYDT
+TRBDGDA_BD_ENTRYUID
+TRBDGDA_BD_MODDT
+TRBDGDA_BD_MODUID
 
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 0 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 0],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 1 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 1],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 2 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 2],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 3 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 3],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 4 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 4],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) = 5 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: 5],
-  SUM(CASE WHEN DATEDIFF(DAY, ISNULL(latestDetail.CreatedOn, master.CreatedOn), GETDATE()) > 5 AND master.Status = 'OPEN' THEN 1 ELSE 0 END) AS [Pending application days count: more than 5],
 
-  SUM(CASE WHEN CAST(ISNULL(latestDetail.ClosedOn, master.ClosedOn) AS DATE) = CAST(GETDATE() AS DATE) AND master.Status = 'CLOSE' THEN 1 ELSE 0 END) AS [Count of applications action taken as on today (approved)],
-  
-  SUM(CASE WHEN CAST(ISNULL(latestDetail.ClosedOn, master.ClosedOn) AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END) AS [Count of applications action taken as on today (returned/ rejected)]
-
-FROM App_Gov_Notice master
-OUTER APPLY (
-    SELECT TOP 1 *
-    FROM App_Gov_Notice_Details d
-    WHERE d.MASTER_ID = master.ID
-    ORDER BY d.CreatedOn DESC
-) AS latestDetail;
+select count(*) from App_Empl_Master where Discharge_Date is null and
+pno not in (select Distinct TRBDGDA_BD_PNO from T_TRBDGDAT_EARS where  TRBDGDA_BD_DATE='06/02/2025' )
