@@ -1,9 +1,15 @@
-select v.*,d.DepartmentName
-from App_Vendorwodetails v
- left join App_DepartmentMaster d on v.DEPT_CODE = d.DepartmentCode
+    ((RadioButtonList)EmployeeMasterFormID_Record.Rows[0].FindControl("ApprvStatus")).SelectedValue = ds1.Tables[0].Rows[0]["ApprvStatus"].ToString();
 
+       <asp:DropDownList  ID="ApprvStatus" runat="server" CssClass="form-control form-control-sm col-sm-8" >
+                      <asp:ListItem Text="" Value="" />
+                      <asp:ListItem Text="Approve"    Value="Approve" />
+                      <asp:ListItem Text="Return"     Value="Return" />
+                      <asp:ListItem Text="GP Return"  Value="GP Return" />
+                      <asp:ListItem Text="Pending"    Value="Pending" />
+                       <asp:ListItem Text="Drafted"    Value="Drafted" />
 
-where  WO_NO in 
-(
+                     <%-- <asp:ListItem Text="GP Pending" Value="GP Pending" />--%>
+                      
+                  </asp:DropDownList>
 
-2500011385,
+                  error - System.ArgumentOutOfRangeException: ''ApprvStatus' has a SelectedValue which is invalid because it does not exist in the list of items.
