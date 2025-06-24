@@ -1,46 +1,28 @@
-protected void WorkOrderNo_SelectedIndexChanged1(object sender, EventArgs e)
-{
-    GridViewRow gr = (GridViewRow)((DropDownList)sender).NamingContainer;
-    string workno = ((DropDownList)sender).SelectedValue;
+ protected void BtnSave_Click(object sender, EventArgs e)
+ {
 
-    if (workno != null)
-    {
-        BL_AttRegisterNext blobj = new BL_AttRegisterNext();
-        DataSet ds = blobj.Getworkno(workno);
+     AttendanceSupplementRecords.UnbindData();
 
-        if (ds != null && ds.Tables[0].Rows.Count > 0)
-        {
-            string locOfWork = ds.Tables[0].Rows[0]["LOC_OF_WORK"].ToString();
 
-            DropDownList ddlLocationCode = (DropDownList)gr.FindControl("LocationCode");
-            DropDownList ddlSiteID = (DropDownList)gr.FindControl("SiteID");
 
-            // Check if the value exists before assigning
-            if (ddlLocationCode.Items.FindByValue(locOfWork) != null)
-            {
-                ddlLocationCode.SelectedValue = locOfWork;
-            }
-            else
-            {
-                // Optionally handle case where value not present in dropdown
-                ddlLocationCode.SelectedIndex = -1;
-            }
+     int i, blank_chk = 0;
+     for (i = 0; i < PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows.Count; i++)
+     {
+         if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i].RowState.ToString() != "Deleted")
+         {
+             PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Status"] = "Pending for approval";
+             if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"].ToString() == null)
+             {
+                 PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"] = "false";
+             }
 
-            Dictionary<string, object> ddlParam = new Dictionary<string, object>();
-            ddlParam.Add("Location", locOfWork);
 
-            GetDropdowns("SiteByLocation", ddlParam);
-            
-            ddlSiteID.SelectedIndex = 0;
-            ddlSiteID.DataBind();
-        }
-        else
-        {
-            DropDownList ddlLocationCode = (DropDownList)gr.FindControl("LocationCode");
-            DropDownList ddlSiteID = (DropDownList)gr.FindControl("SiteID");
+             if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["SiteID"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["SiteID"].ToString() == null || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["LocationCode"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["LocationCode"].ToString() == null || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["WorkOrderNo"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["WorkOrderNo"].ToString() == null)
+             {
+                 blank_chk = 1;
 
-            ddlLocationCode.DataBind();
-            ddlSiteID.DataBind();
-        }
-    }
-}
+             }
+
+
+         }
+     }
