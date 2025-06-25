@@ -1,28 +1,11 @@
- protected void BtnSave_Click(object sender, EventArgs e)
- {
-
-     AttendanceSupplementRecords.UnbindData();
-
-
-
-     int i, blank_chk = 0;
-     for (i = 0; i < PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows.Count; i++)
-     {
-         if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i].RowState.ToString() != "Deleted")
-         {
-             PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Status"] = "Pending for approval";
-             if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"].ToString() == null)
-             {
-                 PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["Present"] = "false";
-             }
-
-
-             if (PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["SiteID"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["SiteID"].ToString() == null || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["LocationCode"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["LocationCode"].ToString() == null || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["WorkOrderNo"].ToString() == "" || PageRecordDataSet.Tables["App_AttendanceDetailsSupplement"].Rows[i]["WorkOrderNo"].ToString() == null)
-             {
-                 blank_chk = 1;
-
-             }
-
-
-         }
-     }
+   <div class="form-group col-lg-2 col-md-4 mb-1">
+        <div class="">
+            <label class="m-0 mr-2 p-0 col-form-label-sm  font-weight-bold fs-6" >Work Order :<span class="text-danger">*</span></label>
+        </div>
+        <div class="">
+             <asp:DropDownList ID="Work_Order_No" runat="server" CssClass="form-control form-control-sm" 
+                DataSource="<%# PageDDLDataset %>" DataMember="app_formc3" DataTextField="wo_no"
+              DataValueField="wo_no" 
+              AutoPostBack="true" Font-Size="Small"></asp:DropDownList>
+        </div>
+   </div>
