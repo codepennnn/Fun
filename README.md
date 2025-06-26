@@ -1,11 +1,34 @@
-   <div class="form-group col-lg-2 col-md-4 mb-1">
-        <div class="">
-            <label class="m-0 mr-2 p-0 col-form-label-sm  font-weight-bold fs-6" >Work Order :<span class="text-danger">*</span></label>
-        </div>
-        <div class="">
-             <asp:DropDownList ID="Work_Order_No" runat="server" CssClass="form-control form-control-sm" 
-                DataSource="<%# PageDDLDataset %>" DataMember="app_formc3" DataTextField="wo_no"
-              DataValueField="wo_no" 
-              AutoPostBack="true" Font-Size="Small"></asp:DropDownList>
-        </div>
-   </div>
+<asp:DropDownList ID="Lic_No" runat="server" CssClass="form-control form-control-sm" Font-Size="Small" Enabled="false">
+</asp:DropDownList>
+
+
+protected void Work_Order_No_SelectedIndexChanged(object sender, EventArgs e)
+{
+    string selectedWorkOrder = Work_Order_No.SelectedValue;
+
+    if (!string.IsNullOrEmpty(selectedWorkOrder))
+    {
+        // Fetch Lic No dataset based on selected Work Order
+        DataSet ds = GetLicNoDataset(selectedWorkOrder);  // Your existing dataset logic
+
+        if (ds != null && ds.Tables[0].Rows.Count > 0)
+        {
+            Lic_No.DataSource = ds;
+            Lic_No.DataTextField = "licno";
+            Lic_No.DataValueField = "licno";
+            Lic_No.DataBind();
+
+            Lic_No.Enabled = true;  // Enable dropdown
+        }
+        else
+        {
+            Lic_No.Items.Clear();
+            Lic_No.Enabled = false;
+        }
+    }
+    else
+    {
+        Lic_No.Items.Clear();
+        Lic_No.Enabled = false;
+    }
+}
