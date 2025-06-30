@@ -1,98 +1,41 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using RetentionMoneyApi.DataAcess;
-
-namespace RetentionMoneyApi.Controllers
+[HttpGet("RetentionMoney")]
+public async Task<IActionResult> RetentionMoneyDetail(string vendorCode, string workOrder)
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class RetentionController : ControllerBase
+    try
     {
+        if (string.IsNullOrWhiteSpace(workOrder) || string.IsNullOrWhiteSpace(vendorCode))
+            return BadRequest("Invalid vendor code or work order.");
 
-        private readonly RetentionDataAcessLayer Context;
+        var data = await Context.GetRetentionMoney(vendorCode, workOrder);
 
-        private string _connectionString;
-
-        public RetentionController(RetentionDataAcessLayer ExemtionContext)
-        {
-            this.Context = Context;
-       
-        }
-
-
-
-
-
-        [HttpGet("RetentionMoney")]
-
-        public async Task<IActionResult> RetentionMoneyDetail(string vendorCode, string workOrders)
-        {
-            try
-            {
-
-       
-
-                if (string.IsNullOrWhiteSpace())
-                    return BadRequest("Invalid work order.");
-
-                var data = await Context.GetRetentionMoney(vendorCode, workOrder);
-
-                if (data == null)
-                    return NotFound("No exemption found.");
-
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error checking exemptions");
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        if (data != null)
+            return Ok(new { Status = "Y", Data = data });
+        else
+            return Ok(new { Status = "N" });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Internal server error");
     }
 }
 
 
-namespace RetentionMoneyApi.DataAcess;
-using Dapper;
-using System.Data.SqlClient;
-using RetentionMoneyApi.ViewModelDto;
-
+public async Task<RetentionMoneyResult> GetRetentionMoney(string vendorCode, string workOrder)
 {
-    public class RetentionDataAcessLayer
+    using (var connection = new SqlConnection(_connectionString))
     {
-        private readonly string _connectionString;
+        string sql = @"
+            SELECT VendorCode, WorkOrderNo, 'Y' AS IsRetention
+            FROM App_Retention_Money_Summary
+            WHERE WorkOrder = @WorkOrder AND VendorCode = @VendorCode AND Status = 'request close'";
 
-        public RetentionDataAcessLayer(string connectionString)
+        var result = await connection.QueryFirstOrDefaultAsync<RetentionMoneyResult>(sql, new
         {
-            _connectionString = connectionString;
+            VendorCode = vendorCode,
+            WorkOrder = workOrder
+        });
 
-        }
-
-
-        public async Task<IEnumerable<RetentionMoneyResult>> GetRetentionMoney(string vendorCode, string workOrder)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                string sql = @"
-        SELECT ";
-
-                var result = await connection.QueryAsync<RetentionMoneyResult>(sql, new
-                {
-                 
-                });
-
-                return result;
-            }
-        }
+        return result;
     }
 }
 
-public class RetentionMoneyResult
-{
-
-    public string VendorCode { get; set; }
-
-    public string WorkOrderNo { get; set; }
-    public string IsRetention { get; set; }
-}
