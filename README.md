@@ -1,48 +1,26 @@
-    [HttpGet("RetentionMoney")]
-    public async Task<IActionResult> RetentionMoneyDetail(string vendorCode, string workOrder)
+public async Task<RetentionMoneyResult> GetRetentionMoney(string vendorCode, string workOrder)
+{
+    using (var connection = new SqlConnection(_connectionString))
     {
-        try
+        string sql = @"
+            SELECT VendorCode, WorkOrderNo, 'Y' AS IsRetention
+            FROM App_Retention_Money_Summary
+            WHERE WorkOrderNo = @WorkOrder AND VendorCode = @VendorCode AND Status = 'Request Closed'";
+
+        var result = await connection.QueryFirstOrDefaultAsync<RetentionMoneyResult>(sql, new
         {
-            if (string.IsNullOrWhiteSpace(workOrder) || string.IsNullOrWhiteSpace(vendorCode))
-                return BadRequest("Please Enter Vendor code and Workorder.");
+            VendorCode = vendorCode,
+            WorkOrder = workOrder  // <-- Match the SQL placeholder @WorkOrder
+        });
 
-            var data = await Context.GetRetentionMoney(vendorCode, workOrder);
-
-            if (data != null)
-                return Ok(new { Status = "Y", Data = data });
-            else
-                return Ok(new { Status = "N" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Internal server error");
-        }
+        return result;
     }
+}
 
-       public async Task<RetentionMoneyResult> GetRetentionMoney(string vendorCode, string workOrder)
-   {
-       using (var connection = new SqlConnection(_connectionString))
-       {
-           string sql = @"
-           SELECT VendorCode, WorkOrderNo, 'Y' AS IsRetention
-           FROM App_Retention_Money_Summary
-           WHERE WorkorderNo = @workOrder AND VendorCode = @VendorCode AND Status = 'Request Closed'";
 
-           var result = await connection.QueryFirstOrDefaultAsync<RetentionMoneyResult>(sql, new
-           {
-               VendorCode = vendorCode,
-               WorkorderNo = workOrder
-           });
-
-           return result;
-       }
-   }
-
-       public class RetentionMoneyResult
-    {
-
-        public string vendorCode { get; set; }
-
-        public string workOrder { get; set; }
-        public string IsRetention { get; set; }
-    }
+public class RetentionMoneyResult
+{
+    public string VendorCode { get; set; }
+    public string WorkOrderNo { get; set; }
+    public string IsRetention { get; set; }
+}
