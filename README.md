@@ -1,22 +1,74 @@
+{
+  "ADIDApiSettings": {
+    "Url": "https://servicesdev.juscoltd.com/ADService/API/ADID/ADService",
+    "ApiKeyName": "x-api-key",   // Replace with actual header name required by the API
+    "ApiKeyValue": "your-secret-key-here"  // Replace with actual API key value
+  }
+}
+
+
+namespace ADIDLoginApp.Models
+{
+    public class ADIDApiSettings
+    {
+        public string Url { get; set; }
+        public string ApiKeyName { get; set; }
+        public string ApiKeyValue { get; set; }
+    }
+}
+
+
+
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.Configure<ADIDLoginApp.Models.ADIDApiSettings>(
+    builder.Configuration.GetSection("ADIDApiSettings")
+);
+
+// For Cookie Authentication
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+    });
+
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapDefaultControllerRoute();
+
+app.Run();
+
+
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using ADIDLoginApp.Models;
 
 namespace ADIDLoginApp.Controllers
 {
     public class AccountController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private const string ApiUrl = "https://servicesdev.juscoltd.com/ADService/API/ADID/ADService";
-        private const string ApiKeyName = "Your-API-Key-Header-Name"; // Replace with actual header name
-        private const string ApiKeyValue = "Your-API-Key-Value";      // Replace with actual key value
+        private readonly ADIDApiSettings _apiSettings;
 
-        public AccountController(IHttpClientFactory httpClientFactory)
+        public AccountController(IHttpClientFactory httpClientFactory, IOptions<ADIDApiSettings> apiSettings)
         {
             _httpClientFactory = httpClientFactory;
+            _apiSettings = apiSettings.Value;
         }
 
         public IActionResult Login()
@@ -59,7 +111,6 @@ namespace ADIDLoginApp.Controllers
         {
             var client = _httpClientFactory.CreateClient();
 
-            // Prepare request payload (adjust according to your API specification)
             var requestBody = new
             {
                 ADID = username,
@@ -68,27 +119,52 @@ namespace ADIDLoginApp.Controllers
 
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 
-            // Add API Key in header if required
-            client.DefaultRequestHeaders.Add(ApiKeyName, ApiKeyValue);
+            // Add API Key to header
+            client.DefaultRequestHeaders.Add(_apiSettings.ApiKeyName, _apiSettings.ApiKeyValue);
 
             try
             {
-                var response = await client.PostAsync(ApiUrl, jsonContent);
+                var response = await client.PostAsync(_apiSettings.Url, jsonContent);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    // Optional: parse response JSON to check specific success flag if needed
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                // Log exception (optional)
                 Console.WriteLine(ex.Message);
             }
 
             return false;
         }
     }
+}
+
+
+
+
+
+
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Login</h2>
+
+<form method="post">
+    <div>
+        <label>ADID</label>
+        <input type="text" name="adid" value="@ViewBag.ADID" required />
+    </div>
+    <div>
+        <label>Password</label>
+        <input type="password" name="password" required />
+    </div>
+    <button type="submit">Login</button>
+</form>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <p style="color:red;">Invalid username or password.</p>
 }
