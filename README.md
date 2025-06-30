@@ -1,29 +1,24 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using ADIDLoginApp.Models;
 
 namespace ADIDLoginApp.Controllers
 {
     public class AccountController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ADIDApiSettings _apiSettings;
 
-        public AccountController(IHttpClientFactory httpClientFactory, IOptions<ADIDApiSettings> apiSettings)
+        public AccountController(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            _apiSettings = apiSettings.Value;
         }
 
         public IActionResult Login()
         {
-            ViewBag.ADID = Environment.UserName;
+            ViewBag.ADID = "AEUPC9300H";  // Prefill for testing, as per your requirement
             return View();
         }
 
@@ -57,60 +52,23 @@ namespace ADIDLoginApp.Controllers
             return RedirectToAction("Login");
         }
 
-        //private async Task<bool> ValidateCredentials(string username, string password)
-        //{
-        //    var client = _httpClientFactory.CreateClient();
-
-        //    var requestBody = new
-        //    {
-        //        ADID = username,
-        //        Password = password
-        //    };
-
-        //    var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
-
-        //    client.DefaultRequestHeaders.Add(_apiSettings.ApiKeyName, _apiSettings.ApiKeyValue);
-
-        //    try
-        //    {
-        //        var response = await client.PostAsync(_apiSettings.Url, jsonContent);
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            return true;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-
-        //    return false;
-        //}
-
-
-
-      
-
-
-
         private async Task<bool> ValidateCredentials(string username, string password)
         {
             var client = _httpClientFactory.CreateClient();
 
             var apiUrl = "https://servicesdev.juscoltd.com/ADService/API/ADID/ADService";
-            var apiKeyName = "XApiKey";
+            var apiKeyName = "XApiKey";  // Adjust if actual header name is different
             var apiKeyValue = "CityGis#123";
+
+            // You can hardcode these for testing or pass dynamic values
             var requestBody = new
             {
                 Domain = "tatasteel",
-                PNo = "AEUPC9300H",
-                Password = "jusco@4321"
+                PNo = username,      // Takes value from form input
+                Password = password  // Takes value from form input
             };
 
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
             client.DefaultRequestHeaders.Add(apiKeyName, apiKeyValue);
 
             try
@@ -119,7 +77,6 @@ namespace ADIDLoginApp.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-              
                     return true;
                 }
             }
@@ -130,11 +87,8 @@ namespace ADIDLoginApp.Controllers
 
             return false;
         }
-
-
     }
 }
-
 
 
 
@@ -146,7 +100,7 @@ namespace ADIDLoginApp.Controllers
 
 <form method="post">
     <div>
-        <label>ADID</label>
+        <label>PNo</label>
         <input type="text" name="adid" value="@ViewBag.ADID" required />
     </div>
     <div>
