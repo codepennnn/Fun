@@ -1,7 +1,1 @@
-SELECT 
-    Remarks,
-    LTRIM(RTRIM(
-        REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-            Remarks, '  ', ' '), '  ', ' '), '  ', ' '), '  ', ' '), '  ', ' ')
-    )) AS CleanRemarks
-FROM YourTable;
+ "Level_1_Remarks": "ok,\r\nAll wages are duly verified work done only for two month.\r\nNo workmen is eligible for leave and bonus for any given period\r\nNo grievance and notice is open. No eligibility of final settlement.\r\nBOCW is ok\r\nwork order is attached by L1\r\n\r\n\r\n\r\n",
