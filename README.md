@@ -1,3 +1,13 @@
-INSERT INTO App_UserFormPermission (UserID, FormId, AllowRead, AllowWrite, AllowDelete, AllowAll, AllowModify, DownTime)
-SELECT u.UserID, 'B7EAEBB7-B705-4542-A644-09BEB0BA0379', 1, 1, 0, 0, 1, 0
-FROM userlogindb.dbo.aspnet_Membership u
+
+      pno in (123456,123457)
+      
+      public DataSet getgmail(string[] pno)
+        {
+            string strsql = string.Empty;
+            strsql = "select EmailID from UserLoginDB.dbo.App_EmployeeMaster where pno in('@Pno')";
+            Dictionary<string, object> objparam = new Dictionary<string, object>();
+            objparam.Add("Pno",string.Join("','",pno));
+            DataHelper dh = new DataHelper();
+            return GetDataset1(strsql, "App_EmployeeMAster", objparam);
+
+        }
