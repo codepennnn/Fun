@@ -1,72 +1,31 @@
-{
-  "ApiSettings": {
-    "ApiKey": "YourExistingApiKey"
-  },
-  "JwtSettings": {
-    "Key": "YourSuperStrongJwtSecretKey123456",
-    "Issuer": "WorkOrderExemptionApi",
-    "Audience": "WorkOrderUsers",
-    "ExpiresInMinutes": 60
-  }
-}
-
-
-
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-
-namespace WorkOrderExemtionApi.Services
-{
-    public class TokenService
-    {
-        private readonly IConfiguration _configuration;
-
-        public TokenService(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
-
-        public string GenerateToken(string username)
-        {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, username)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var expiry = DateTime.Now.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"]));
-
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: expiry,
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-    }
-
-
-
-
-
+using WorkOrderExemtionApi.DataAcess;
+using WorkOrderExemtionApi.Middleware;
+using WorkOrderExemtionApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using WorkOrderExemtionApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// Add services to the container.
+
 builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+
+
+var Config = builder.Configuration;
+var connectionString = Config.GetConnectionString("Dbcs");
+var environment = builder.Environment;
+builder.Services.AddSingleton(new WorkOrderExemptionDataAcess(connectionString));
+builder.Services.AddHttpContextAccessor();
+
+
+
+
 builder.Services.AddSingleton<TokenService>();
 
 // JWT Authentication Configuration
@@ -88,11 +47,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+
+
+
 var app = builder.Build();
 
-app.UseMiddleware<WorkOrderExemtionApi.Middleware.ApiKeyMiddleware>(); // Your existing API key logic
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.UseAuthentication();
+app.UseHttpsRedirection();
+
+
+app.UseMiddleware<SecretKeyAuthorization>();
+
+
 app.UseAuthorization();
 
 app.MapControllers();
@@ -101,35 +73,43 @@ app.Run();
 
 
 
+  "ApiKey": "jusco@123",
+
+  "JwtSettings": {
+    "Key": "YourSuperStrongJwtSecretKey123456",
+    "Issuer": "WorkOrderExemptionApi",
+    "Audience": "WorkOrderUsers",
+    "ExpiresInMinutes": 60
+  }
 
 
-[ApiController]
-[Route("[controller]")]
-public class AuthController : ControllerBase
-{
-    private readonly TokenService _tokenService;
 
-    public AuthController(TokenService tokenService)
-    {
-        _tokenService = tokenService;
-    }
 
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
-    {
-        // For simplicity, hardcoded validation. Replace with real user validation.
-        if (request.Username == "admin" && request.Password == "password")
+  
+        [Authorize]
+        [HttpGet("check-exemptions")]
+        public async Task<IActionResult> CheckExemptions(string vendorCode, string workOrders)
         {
-            var token = _tokenService.GenerateToken(request.Username);
-            return Ok(new { token });
+            try
+            {
+                
+                var workOrder = workOrders.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                          .Select(w => w.Trim())
+                                          .FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(workOrder))
+                    return BadRequest("Invalid work order.");
+
+                var data = await ExemtionContext.GetExemptionsAsync(vendorCode, workOrder);
+
+                if (data == null)
+                    return NotFound("No exemption found.");
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error checking exemptions");
+                return StatusCode(500, "Internal server error");
+            }
         }
-
-        return Unauthorized("Invalid username or password.");
-    }
-}
-
-public class LoginRequest
-{
-    public string Username { get; set; }
-    public string Password { get; set; }
-}
