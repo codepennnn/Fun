@@ -1,15 +1,22 @@
-{
-  "JwtSettings": {
-    "Key": "Zp!L9#Tf$7WqXp@3BnMv^Kd2Yu0a&JzR",
-    "Issuer": "SecureApp",
-    "Audience": "SecureUsers",
-    "ExpiresInMinutes": 60
-  },
-  "ApiSettings": {
-    "ApiKey": "Aksh@API#Kx8&2zWp$BvLqT1^MnZrY07"
-  },
-  "AdminCredentials": {
-    "Username": "user_Asif_2k25!",
-    "Password": "L7@xZ#p9V!qW2rT$Bm1K"
-  }
-}
+    public class AuthController : ControllerBase
+    {
+        private readonly TokenService _tokenService;
+
+        public AuthController(TokenService tokenService)
+        {
+            _tokenService = tokenService;
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginRequest request)
+        {
+
+            if (request.Username == "XUser_5Qu09Z" && request.Password == "Zp!X74@JuSc0")
+            {
+                var token = _tokenService.GenerateToken(request.Username);
+                return Ok(new { token });
+            }
+
+            return Unauthorized("Invalid username or password.");
+        }
+    }
