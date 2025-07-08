@@ -1,22 +1,18 @@
-    public class AuthController : ControllerBase
-    {
-        private readonly TokenService _tokenService;
+{
+  "AuthCredentials": {
+    "Username": "XUser_5Qu09Z",
+    "Password": "Zp!X74@JuSc0"
+  }
+}
 
-        public AuthController(TokenService tokenService)
-        {
-            _tokenService = tokenService;
-        }
 
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
-        {
 
-            if (request.Username == "XUser_5Qu09Z" && request.Password == "Zp!X74@JuSc0")
-            {
-                var token = _tokenService.GenerateToken(request.Username);
-                return Ok(new { token });
-            }
+var configUsername = _configuration["AuthCredentials:Username"];
+var configPasswordHash = _configuration["AuthCredentials:PasswordHash"];
 
-            return Unauthorized("Invalid username or password.");
-        }
-    }
+if (request.Username == configUsername &&
+    BCrypt.Net.BCrypt.Verify(request.Password, configPasswordHash))
+{
+    var token = _tokenService.GenerateToken(request.Username);
+    return Ok(new { token });
+}
