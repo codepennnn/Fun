@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using BCrypt.Net;
-using System;
-
+..
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -19,16 +15,15 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        // Null or missing check
         if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
         {
             return BadRequest("Username or password is missing.");
         }
 
         var configUsername = _configuration["AuthCredentials:Username"];
-        var configPasswordHash = _configuration["AuthCredentials:PasswordHash"];
+        var configPassword = _configuration["AuthCredentials:Password"];
 
-        if (request.Username == configUsername && BCrypt.Net.BCrypt.Verify(request.Password, configPasswordHash))
+        if (request.Username == configUsername && request.Password == configPassword)
         {
             var token = _tokenService.GenerateToken(request.Username);
             return Ok(new { token });
@@ -36,12 +31,4 @@ public class AuthController : ControllerBase
 
         return Unauthorized("Invalid username or password.");
     }
-
-
-
-
-    "AuthCredentials": {
-  "Username": "XUser_5Qu09Z",
-  "PasswordHash": "$2a$11$f5HR2gSHEW9ADzy/hO7keOJ3Cn.QxZ2dc.RiWfQ5C7mKM1VE79beW"
-}
 }
