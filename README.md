@@ -1,40 +1,31 @@
-protected void Work_Order_No_SelectedIndexChanged(object sender, EventArgs e)
-{
-    string wo_no = Work_Order_No.SelectedValue;
+  select  CONVERT(varchar(20),GETDATE(),103) as  TODAY_DATE, dtl.V_NAME,dtl.V_NAME ,dtl.V_CODE,dtl.WO_NO,  CONVERT(varchar(20),dtl.PERIOD_CONTRACT_TO,103) as  PERIOD_CONTRACT_TO ," + ll_worker+ " as LL_WORKER,dtl.LL_VALID_UPTO,dtl.LOCATION_OF_WORK,dtl.NATURE_OF_PAYMENT,dtl.AUTHOR_NAME,dtl.AUTHOR_CONTACT_NO,(select sum(NO_OF_EMP_REG)+sum(NO_OF_EMP_TEMP)  from App_Vendor_FormC3_WorkManCat as cat where cat.MASTER_ID=dtl.ID and cat.WO_NO = dtl.WO_NO and cat.MASTER_ID=dtl.id) as Total_SUM,dtl.FORMC3_REFNO from App_Vendor_form_C3_Dtl as dtl where dtl.WO_NO='" + wo_no + "' and   ll_no='" + ll_no + "'   and dtl.V_CODE='" + v_code+"' and dtl.STATUS='Approved'    ";
 
-    if (!string.IsNullOrEmpty(wo_no))
-    {
-        // Optional: If you truly need only first 10 characters
-        // wo_no = wo_no.Substring(0, 10); 
 
-        BL_FormC3DS blobj = new BL_FormC3DS();
-        DataSet ds = blobj.GetLicNo(wo_no);
 
-        if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
-        {
-            Lic_No.Items.Clear();
-            Lic_No.Items.Add(new ListItem("Please select", ""));
-
-            foreach (DataRow row in ds.Tables[0].Rows)
-            {
-                string licc = row["Ll_NO"].ToString();
-                Lic_No.Items.Add(new ListItem(licc, licc));
-            }
-
-            Lic_No.SelectedIndex = 0;
-            Lic_No.Enabled = true;
-        }
-        else
-        {
-            Lic_No.Items.Clear();
-            Lic_No.Items.Add(new ListItem("No Lic No Found", ""));
-            Lic_No.Enabled = false;
-        }
-    }
-    else
-    {
-        Lic_No.Items.Clear();
-        Lic_No.Items.Add(new ListItem("Please select Work Order", ""));
-        Lic_No.Enabled = false;
-    }
-}
+    string ll_worker = "";
+  ds2 = blobj.Getc3_ll_work(wo_no, v_code);
+  if (ds2.Tables[0].Rows.Count > 0)
+  {
+      if (ds2.Tables[0].Rows[0]["LL_WORKER"].ToString() == "" || ds2.Tables[0].Rows[0]["LL_WORKER"].ToString() == null)
+      {
+          ds3 = blobj.Getc3_jusco_ll_work(wo_no, v_code);
+          if (ds3.Tables[0].Rows.Count > 0)
+          {
+              if (ds3.Tables[0].Rows[0]["LL_WORKER"].ToString() == "" || ds3.Tables[0].Rows[0]["LL_WORKER"].ToString() == null)
+              {
+                  ll_worker = "ERROR";
+              }
+              else
+              {
+                  ll_worker = ds3.Tables[0].Rows[0]["LL_WORKER"].ToString();
+              }
+          }
+      }
+      else 
+      {
+          ll_worker = ds2.Tables[0].Rows[0]["LL_WORKER"].ToString();
+      }
+  }
+  ds1 = blobj.Getc3_report(wo_no,v_code, ll_worker,ll_no);
+      ReportViewer1.LocalReport.ReportPath = "App\\Report\\FormC3_Report.rdlc";
+            
