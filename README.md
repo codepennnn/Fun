@@ -1,84 +1,57 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+..
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ComplianceDBTS_API.Services;
 
-[ApiController]
-[Route("oauth")]
-public class AuthController : ControllerBase
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Token service
+builder.Services.AddScoped<TokenService>();
+
+// Load JWT settings
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+// Configure JWT Bearer authentication
+builder.Services.AddAuthentication(options =>
 {
-    private readonly TokenService _tokenService;
-    private readonly IConfiguration _configuration;
-
-    public AuthController(TokenService tokenService, IConfiguration configuration)
-    {
-        _tokenService = tokenService;
-        _configuration = configuration;
-    }
-
-    [HttpPost("token")]
-    public IActionResult GetToken([FromForm] OAuthTokenRequest request)
-    {
-        if (request == null || request.Grant_Type != "password")
-            return BadRequest("Invalid grant_type");
-
-        var configUsername = _configuration["AuthCredentials:Username"];
-        var configPassword = _configuration["AuthCredentials:Password"];
-
-        if (request.Username == configUsername && request.Password == configPassword)
-        {
-            var token = _tokenService.GenerateToken(request.Username);
-            return Ok(new
-            {
-                access_token = token,
-                token_type = "Bearer",
-                expires_in = 1800 // or read from config
-            });
-        }
-
-        return Unauthorized("Invalid username or password.");
-    }
-
-    public class OAuthTokenRequest
-    {
-        public string Grant_Type { get; set; } // must be "password"
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
-
-
-
-
-    public class TokenService
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-    private readonly IConfiguration _configuration;
-
-    public TokenService(IConfiguration configuration)
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        _configuration = configuration;
-    }
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
 
-    public string GenerateToken(string username)
-    {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-        var expiry = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["DurationInMinutes"]));
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
 
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+builder.Services.AddAuthorization();
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: expiry,
-            signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-        );
+var app = builder.Build();
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-}
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseHttpsRedirection();
+
+// Enable authentication and authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
