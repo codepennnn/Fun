@@ -1,3 +1,9 @@
+financial year parameter - 2024-2025
+
+header - object	            SLG	   RevisedSLG	       APR	          APR_Value	    MAY	               MAY_Value   ....similarly till march
+values  - Leave Compliance	5 days	5 days	         95.21	          179	        97.66	             209
+
+
 WITH Processed AS (
     SELECT 
         *, 
@@ -37,3 +43,11 @@ SELECT
 FROM Processed
 GROUP BY FORMAT(ApplicationDate, 'yyyy-MM')
 ORDER BY FORMAT(ApplicationDate, 'yyyy-MM');
+
+
+
+
+
+
+
+
