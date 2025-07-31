@@ -1,3 +1,20 @@
+ 
+
+
+
+
+
+WITH Processed AS (
+    SELECT 
+        *,
+        ISNULL(
+            CASE 
+                WHEN ReSubmiteddate > CreatedOn THEN ReSubmiteddate 
+                ELSE CreatedOn 
+            END,
+            CreatedOn) AS ApplicationDate  FROM App_Leave_Comp_Summary
+       )
+
 SELECT 
     'Leave Compliance' AS Module,
     '5 days' AS SLG,
@@ -20,3 +37,11 @@ SELECT
 FROM Processed
 GROUP BY FORMAT(ApplicationDate, 'yyyy-MM')
 ORDER BY FORMAT(ApplicationDate, 'yyyy-MM');
+
+
+
+wrong coming 
+take refrenece froom below query
+select * from App_Leave_Comp_Summary where FORMAT((CreatedOn),'MM')='05' and FORMAT((CreatedOn),'yyyy')='2025' and ReSubmiteddate is null and Status='Request Closed' and DATEDIFF(day,CreatedOn,CC_CreatedOn_L2)<=5
+ union all
+select * from App_Leave_Comp_Summary where FORMAT((ReSubmiteddate),'MM')='05' and FORMAT((ReSubmiteddate),'yyyy')='2025' and Status='Request Closed' and DATEDIFF(day,ReSubmiteddate,CC_CreatedOn_L2)<=5
