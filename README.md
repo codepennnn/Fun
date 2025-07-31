@@ -1,47 +1,29 @@
- 
-
-
-
-
-
 WITH Processed AS (
-    SELECT 
-        *,
-        ISNULL(
-            CASE 
-                WHEN ReSubmiteddate > CreatedOn THEN ReSubmiteddate 
-                ELSE CreatedOn 
-            END,
-            CreatedOn) AS ApplicationDate  FROM App_Leave_Comp_Summary
-       )
+    SELECT 
+        *,
+        COALESCE(ReSubmiteddate, CreatedOn) AS ApplicationDate
+    FROM App_Leave_Comp_Summary
+)
 
-SELECT 
-    'Leave Compliance' AS Module,
-    '5 days' AS SLG,
-    FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
-    COUNT(*) AS TotalApplications,
-    SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END) AS ApprovedApplications,
-    SUM(CASE 
-            WHEN Status = 'Request Closed' 
-                 AND CC_CreatedOn_L2 IS NOT NULL
-                 AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5
-        THEN 1 ELSE 0 
-    END) AS ApprovedUnderSLA,
-    CAST(
-        AVG(CASE 
-            WHEN Status = 'Request Closed' 
-                 AND CC_CreatedOn_L2 IS NOT NULL 
-                 AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5 
-            THEN 1.0 ELSE 0.0 END) * 100
-    AS DECIMAL(5,2)) AS SLAPercentage
+SELECT 
+    'Leave Compliance' AS Module,
+    '5 days' AS SLG,
+    FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
+    COUNT(*) AS TotalApplications,
+    SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END) AS ApprovedApplications,
+    SUM(CASE 
+        WHEN Status = 'Request Closed' 
+            AND CC_CreatedOn_L2 IS NOT NULL
+            AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5
+        THEN 1 ELSE 0 
+    END) AS ApprovedUnderSLA,
+    CAST(
+        AVG(CASE 
+            WHEN Status = 'Request Closed' 
+                AND CC_CreatedOn_L2 IS NOT NULL 
+                AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5 
+            THEN 1.0 ELSE 0.0 END) * 100
+    AS DECIMAL(5,2)) AS SLAPercentage
 FROM Processed
 GROUP BY FORMAT(ApplicationDate, 'yyyy-MM')
 ORDER BY FORMAT(ApplicationDate, 'yyyy-MM');
-
-
-
-wrong coming 
-take refrenece froom below query
-select * from App_Leave_Comp_Summary where FORMAT((CreatedOn),'MM')='05' and FORMAT((CreatedOn),'yyyy')='2025' and ReSubmiteddate is null and Status='Request Closed' and DATEDIFF(day,CreatedOn,CC_CreatedOn_L2)<=5
- union all
-select * from App_Leave_Comp_Summary where FORMAT((ReSubmiteddate),'MM')='05' and FORMAT((ReSubmiteddate),'yyyy')='2025' and Status='Request Closed' and DATEDIFF(day,ReSubmiteddate,CC_CreatedOn_L2)<=5
