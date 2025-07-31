@@ -1,11 +1,5 @@
-ISNULL(
-        CAST(
-            100.0 * SUM(CASE  
-                          WHEN Status = 'Request Closed'  
-                               AND CC_CreatedOn_L2 IS NOT NULL  
-                               AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5  
-                          THEN 1 ELSE 0  
-                       END)
-            / NULLIF(SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END), 0)
-        AS DECIMAL(5,2)),
-    0.00) AS SLAPercentage
+
+ select * from App_Leave_Comp_Summary where FORMAT((CreatedOn),'MM')='05' and FORMAT((CreatedOn),'yyyy')='2025' and ReSubmiteddate is null and Status='Request Closed' and DATEDIFF(day,CreatedOn,CC_CreatedOn_L2)<=5
+ union all
+select * from App_Leave_Comp_Summary where FORMAT((ReSubmiteddate),'MM')='05' and FORMAT((ReSubmiteddate),'yyyy')='2025' and Status='Request Closed' and DATEDIFF(day,ReSubmiteddate,CC_CreatedOn_L2)<=5
+
