@@ -8,18 +8,15 @@ SELECT
             WHEN Status = 'Request Closed' 
                  AND CC_CreatedOn_L2 IS NOT NULL
                  AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5
-         THEN 1 ELSE 0 
+        THEN 1 ELSE 0 
     END) AS ApprovedUnderSLA,
     CAST(
-        100.0 * SUM(CASE 
-                     WHEN Status = 'Request Closed' 
-                          AND CC_CreatedOn_L2 IS NOT NULL
-                          AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5
-                   THEN 1 ELSE 0 
-                 END)
-        / NULLIF(SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END), 0)
+        AVG(CASE 
+            WHEN Status = 'Request Closed' 
+                 AND CC_CreatedOn_L2 IS NOT NULL 
+                 AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5 
+            THEN 1.0 ELSE 0.0 END) * 100
     AS DECIMAL(5,2)) AS SLAPercentage
 FROM Processed
 GROUP BY FORMAT(ApplicationDate, 'yyyy-MM')
 ORDER BY FORMAT(ApplicationDate, 'yyyy-MM');
-
