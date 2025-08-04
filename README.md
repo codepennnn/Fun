@@ -1,35 +1,107 @@
-  -- 1.Leave
-  
-  WITH Processed AS (
-    SELECT 
-        *, 
-        CreatedOn AS ApplicationDate
-    FROM App_Leave_Comp_Summary
-    WHERE ReSubmiteddate IS NULL
+-- Leave Compliance Subquery
+SELECT * FROM (
+    WITH Processed AS (
+        SELECT 
+            *, 
+            CreatedOn AS ApplicationDate
+        FROM App_Leave_Comp_Summary
+        WHERE ReSubmiteddate IS NULL
 
-    UNION ALL
+        UNION ALL
 
-    SELECT 
-        *, 
-        ReSubmiteddate AS ApplicationDate
-    FROM App_Leave_Comp_Summary
-    WHERE ReSubmiteddate IS NOT NULL
-),
-Filtered AS (
-    SELECT *
-    FROM Processed
-    WHERE ApplicationDate >= '2025-04-01' AND ApplicationDate < '2026-04-01'
-),
-Aggregated AS (
+        SELECT 
+            *, 
+            ReSubmiteddate AS ApplicationDate
+        FROM App_Leave_Comp_Summary
+        WHERE ReSubmiteddate IS NOT NULL
+    ),
+    Filtered AS (
+        SELECT *
+        FROM Processed
+        WHERE ApplicationDate >= '2025-04-01' AND ApplicationDate < '2026-04-01'
+    ),
+    Aggregated AS (
+        SELECT
+            FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
+            DATENAME(MONTH, ApplicationDate) AS MonthName,
+            LEFT(DATENAME(MONTH, ApplicationDate), 3) AS MonthShort,
+            DATEPART(MONTH, ApplicationDate) AS MonthNum,
+            SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END) AS Approved,
+            SUM(CASE 
+                WHEN Status = 'Request Closed' 
+                    AND CC_CreatedOn_L2 IS NOT NULL 
+                    AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5 
+                THEN 1 ELSE 0 
+            END) AS ApprovedUnderSLA
+        FROM Filtered
+        GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate), DATENAME(MONTH, ApplicationDate)
+    )
     SELECT
-        FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
-        DATENAME(MONTH, ApplicationDate) AS MonthName,
-        LEFT(DATENAME(MONTH, ApplicationDate), 3) AS MonthShort,
-        DATEPART(MONTH, ApplicationDate) AS MonthNum,
-        SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END) AS Approved,
-        SUM(CASE 
-            WHEN Status = 'Request Closed' 
-              AND CC_CreatedOn_L2 IS NOT NULL 
+        'Leave Compliance' AS Object,
+        '5 days' AS SLG,
+        '5 days' AS RevisedSLG,
+        -- Repeat your CASE logic for months
+        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS APR,
+        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN ApprovedUnderSLA END), 0) AS APR_Value,
+        -- ... repeat for other months ...
+        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS MAR,
+        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN ApprovedUnderSLA END), 0) AS MAR_Value
+    FROM Aggregated
+) AS LeaveData
+
+UNION ALL
+
+-- Wage Compliance Subquery
+SELECT * FROM (
+    WITH Processed AS (
+        SELECT 
+            *, 
+            CREATEDON AS ApplicationDate
+        FROM App_Online_Wages
+        WHERE ReSubmitedOn IS NULL
+
+        UNION ALL
+
+        SELECT 
+            *, 
+            ReSubmitedOn AS ApplicationDate
+        FROM App_Online_Wages
+        WHERE ReSubmitedOn IS NOT NULL
+    ),
+    Filtered AS (
+        SELECT *
+        FROM Processed
+        WHERE ApplicationDate >= '2025-04-01' AND ApplicationDate < '2026-04-01'
+    ),
+    Aggregated AS (
+        SELECT
+            FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
+            DATENAME(MONTH, ApplicationDate) AS MonthName,
+            LEFT(DATENAME(MONTH, ApplicationDate), 3) AS MonthShort,
+            DATEPART(MONTH, ApplicationDate) AS MonthNum,
+            SUM(CASE WHEN Status = 'Request Closed' THEN 1 ELSE 0 END) AS Approved,
+            SUM(CASE 
+                WHEN Status = 'Request Closed' 
+                    AND LEVEL_2_UPDATEDON IS NOT NULL 
+                    AND DATEDIFF(DAY, ApplicationDate, LEVEL_2_UPDATEDON) <= 3 
+                THEN 1 ELSE 0 
+            END) AS ApprovedUnderSLA
+        FROM Filtered
+        GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate), DATENAME(MONTH, ApplicationDate)
+    )
+    SELECT
+        'Wage Compliance' AS Object,
+        '3 days' AS SLG,
+        '5 days' AS RevisedSLG,
+        -- Repeat your CASE logic for months
+        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS APR,
+        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN ApprovedUnderSLA END), 0) AS APR_Value,
+        -- ... repeat for other months ...
+        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS MAR,
+        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN ApprovedUnderSLA END), 0) AS MAR_Value
+    FROM Aggregated
+) AS WageData;
+AND CC_CreatedOn_L2 IS NOT NULL 
               AND DATEDIFF(DAY, ApplicationDate, CC_CreatedOn_L2) <= 5 
             THEN 1 ELSE 0 
         END) AS ApprovedUnderSLA
