@@ -5,6 +5,7 @@ if (ds_L1 != null && ds_L1.Tables.Count > 0 && ds_L1.Tables[0].Rows.Count > 0)
 
     ViewState["MisData"] = ds_L1.Tables[0];
 
-    // Inject JavaScript to show the button
-    ScriptManager.RegisterStartupScript(this, this.GetType(), "showBtnExport", "$('#btnExport').show();", true);
+    // Show btnExport using plain JS
+    string script = "document.getElementById('" + btnExport.ClientID + "').style.display = 'inline-block';";
+    ScriptManager.RegisterStartupScript(this, this.GetType(), "showBtnExport", script, true);
 }
