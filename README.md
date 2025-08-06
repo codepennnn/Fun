@@ -1,26 +1,23 @@
 <script>
-    // Delimiter for separating department names in hidden input
     const DEPT_DELIMITER = "||";
 
-    // Update hidden and visible inputs when checkboxes are changed
+    // Update hidden input + visible text field when checkboxes change
     function updateDeptFields() {
-        const selectedValues = [];
         const selectedLabels = [];
 
         document.querySelectorAll(".Dept-checkbox:checked").forEach(cb => {
-            selectedValues.push(cb.value);
             const label = document.querySelector(`label[for="${cb.id}"]`);
             if (label) selectedLabels.push(label.textContent.trim());
         });
 
-        // Save to hidden field using safe delimiter
+        // Use || to join labels in hidden field
         document.getElementById("Dept").value = selectedLabels.join(DEPT_DELIMITER);
 
-        // Display labels in visible input (you can use .value or .placeholder)
+        // For display: show them comma-separated, just for UI
         document.getElementById("DeptDropdown").value = selectedLabels.join(", ");
     }
 
-    // On page load: restore checkbox states from Dept hidden field
+    // On load: restore checkbox state from hidden field
     document.addEventListener("DOMContentLoaded", function () {
         const saved = document.getElementById("Dept").value;
         const savedLabels = saved.split(DEPT_DELIMITER).map(s => s.trim());
@@ -31,11 +28,9 @@
                 cb.checked = true;
             }
 
-            // Attach change handler
             cb.addEventListener("change", updateDeptFields);
         });
 
-        // Initialize display
-        updateDeptFields();
+        updateDeptFields(); // Initialize display
     });
 </script>
