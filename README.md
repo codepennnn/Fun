@@ -1,109 +1,67 @@
-I have two checkbox department that is saved in my table - Administration & Event Management and Row,Admin & Compliances   
-but when this function execute only this Administration & Event Management department but not coming this Row,Admin & Compliances  
+<script>
+    const DELIMITER = "||"; // Use a delimiter that's safe from department names
 
-note - Row,Admin & Compliances  its one department with comma already saved in table
-it meas if my department name data already have comma then issue occurs not showing it otherwise perfect wokring
- 
+    function updateSelectedDepartments() {
+        const selectedLabels = [];
 
+        document.querySelectorAll(".Dept-checkbox:checked").forEach(cb => {
+            const label = document.querySelector(`label[for="${cb.id}"]`);
+            if (label) selectedLabels.push(label.textContent.trim());
+        });
 
+        // Save real data using safe delimiter
+        document.getElementById("Dept").value = selectedLabels.join(DELIMITER);
 
+        // Show nice comma-separated list in textarea
+        document.getElementById("DeptDropdown").value = selectedLabels.join(", ");
+    }
 
+    // Load saved values on page load (for edit mode)
+    document.addEventListener("DOMContentLoaded", function () {
+        const saved = document.getElementById("Dept").value;
+        const savedDepts = saved.split(DELIMITER).map(s => s.trim());
 
+        document.querySelectorAll(".Dept-checkbox").forEach(cb => {
+            const label = document.querySelector(`label[for="${cb.id}"]`);
+            if (label && savedDepts.includes(label.textContent.trim())) {
+                cb.checked = true;
+            }
 
+            cb.addEventListener("change", updateSelectedDepartments);
+        });
 
-
-     <div class="col-sm-5">
-         <label class="form-label">Department</label>
-
-         <div class="dropdown">
-             <textarea class="form-control" placeholder="Select Depts"
-                    type="button" id="DeptDropdown" data-bs-toggle="dropdown" aria-expanded="false" ></textarea>
-
-             <ul class="dropdown-menu w-100" aria-labelledby="DeptDropdown" id="locationList" style="max-height: 200px; overflow-y: auto;">
-                 @foreach (var item in ViewBag.DeptList as List<SelectListItem>)
-                 {
-                     <li style="margin-left:5%;">
-                         <div class="form-check">
-                             <input type="checkbox" class="form-check-input Dept-checkbox"
-                                    value="@item.Value" id="Dept_@item.Value" />
-                             <label class="form-check-label" for="Dept_@item.Value">@item.Text</label>
-                         </div>
-                     </li>
-                 }
-             </ul>
-         </div>
-
-         <!-- Hidden dept field for form -->
-         <input type="hidden" id="Dept" name="Coordinators[0].DeptName" />
-     </div>
-
-
-   <!-- Department with checkboxes -->
-  <div class="col-sm-5">
-      <label class="form-label">Department</label>
-
-      <div class="dropdown">
-          <input class="form-control" placeholder="Select Depts"
-                 type="button" id="DeptDropdown" data-bs-toggle="dropdown" aria-expanded="false" />
-
-          <ul class="dropdown-menu w-100" aria-labelledby="DeptDropdown" id="locationList" style="max-height: 200px; overflow-y: auto;">
-              @foreach (var item in ViewBag.DeptList as List<SelectListItem>)
-              {
-                  <li style="margin-left:5%;">
-                      <div class="form-check">
-                          <input type="checkbox" class="form-check-input Dept-checkbox"
-                                 value="@item.Value" id="Dept_@item.Value" />
-                          <label class="form-check-label" for="Dept_@item.Value">@item.Text</label>
-                      </div>
-                  </li>
-              }
-          </ul>
-      </div>
-
-      <!-- Hidden dept field for form -->
-      <input type="hidden" id="Dept" name="Coordinators[0].DeptName" />
-  </div>
-
-
-  // Used when manually selecting department checkboxes from dropdown label text
-  function checkCheckboxesFromDropdownText() {
-      const dropdownText = document.getElementById("DeptDropdown").value;
-      const selectedNames = dropdownText.split(",").map(s => s.trim()).filter(s => s);
-
-      // Clear all checkboxes first
-      document.querySelectorAll(".Dept-checkbox").forEach(cb => cb.checked = false);
+        updateSelectedDepartments(); // Initial fill
+    });
+</script>
 
 
 
 
+<!-- Department Multi-Select -->
+<div class="col-sm-5">
+    <label class="form-label">Department</label>
 
-      // Recheck matching boxes based on label text
-      selectedNames.forEach(name => {
-          document.querySelectorAll(".Dept-checkbox").forEach(cb => {
-              const label = document.querySelector(`label[for="${cb.id}"]`);
-              if (label && label.textContent.trim() === name) {
-                  cb.checked = true;
-              }
-          });
-      });
+    <div class="dropdown">
+        <textarea class="form-control" placeholder="Select Depts"
+                  id="DeptDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  readonly></textarea>
 
-      updateHiddenFieldFromCheckboxes(); // Update hidden input and label display
-  }
+        <ul class="dropdown-menu w-100" aria-labelledby="DeptDropdown" id="locationList" style="max-height: 200px; overflow-y: auto;">
+            @foreach (var item in ViewBag.DeptList as List<SelectListItem>)
+            {
+                <li style="margin-left:5%;">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input Dept-checkbox"
+                               value="@item.Value" id="Dept_@item.Value" />
+                        <label class="form-check-label" for="Dept_@item.Value">@item.Text</label>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
 
-  // Update hidden Dept value + update visible text in input
-  function updateHiddenFieldFromCheckboxes() {
-      const selectedValues = [];
-      const selectedLabels = [];
-
-      document.querySelectorAll(".Dept-checkbox:checked").forEach(cb => {
-          selectedValues.push(cb.value);
-          const label = document.querySelector(`label[for="${cb.id}"]`);
-          if (label) selectedLabels.push(label.textContent.trim());
-      });
-
-      document.getElementById("Dept").value = selectedValues.join(",");
-      document.getElementById("DeptDropdown").value = selectedLabels.join(", ");
-  }
-
-
-
+    <!-- Hidden field to store actual selected values -->
+    <input type="hidden" id="Dept" name="Coordinators[0].DeptName" />
+</div>
