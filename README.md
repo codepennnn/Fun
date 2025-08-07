@@ -1,24 +1,27 @@
-// Used when manually selecting department checkboxes from dropdown label text
 function checkCheckboxesFromDropdownText() {
-    const dropdown = document.getElementById("DeptDropdown");
-    let raw = dropdown.value.trim();
+    const dropdownText = document.getElementById("DeptDropdown").value.trim();
 
-    // 🔧 Hardcoded fix: replace the department name with a placeholder
-    raw = raw.replace("Row,Admin & Compliances", "SPECIAL_DEPT");
+    // Split first assuming it's comma-separated
+    let tempParts = dropdownText.split(",").map(s => s.trim()).filter(s => s);
 
-    // Split by comma (safe now that special name is replaced)
-    const selectedNames = raw.split(",").map(s => s.trim()).filter(s => s);
+    const selectedNames = [];
+    for (let i = 0; i < tempParts.length; i++) {
+        const part = tempParts[i];
 
-    // Restore original name
-    const finalNames = selectedNames.map(name =>
-        name === "SPECIAL_DEPT" ? "Row,Admin & Compliances" : name
-    );
+        // Handle known department with comma manually
+        if (part === "Row" && tempParts[i + 1] === "Admin & Compliances") {
+            selectedNames.push("Row,Admin & Compliances");
+            i++; // skip next part
+        } else {
+            selectedNames.push(part);
+        }
+    }
 
-    // Clear all checkboxes first
+    // Clear all checkboxes
     document.querySelectorAll(".Dept-checkbox").forEach(cb => cb.checked = false);
 
-    // Recheck matching boxes based on label text
-    finalNames.forEach(name => {
+    // Check matching checkboxes
+    selectedNames.forEach(name => {
         document.querySelectorAll(".Dept-checkbox").forEach(cb => {
             const label = document.querySelector(`label[for="${cb.id}"]`);
             if (label && label.textContent.trim() === name) {
@@ -27,5 +30,5 @@ function checkCheckboxesFromDropdownText() {
         });
     });
 
-    updateHiddenFieldFromCheckboxes(); // Update hidden input and label display
+    updateHiddenFieldFromCheckboxes();
 }
