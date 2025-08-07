@@ -1,38 +1,19 @@
-function updateHiddenFieldFromCheckboxes() {
-    const selectedValues = [];
-    const selectedLabels = [];
-
-    document.querySelectorAll(".Dept-checkbox:checked").forEach(cb => {
-        selectedValues.push(cb.value);
+function checkCheckboxesFromDropdownText() {
+    const dropdownText = document.getElementById("DeptDropdown").value.trim();
+    const allLabels = Array.from(document.querySelectorAll(".Dept-checkbox")).map(cb => {
         const label = document.querySelector(`label[for="${cb.id}"]`);
-        if (label) selectedLabels.push(label.textContent.trim());
+        return label ? label.textContent.trim() : '';
     });
 
-    document.getElementById("Dept").value = selectedLabels.join("||");     // 🔸 Use || for saving
-    document.getElementById("DeptDropdown").value = selectedLabels.join(", "); // 🔸 Still show as comma in textbox
-}
-
-
-function checkCheckboxesFromDropdownText() {
-    const dropdownText = document.getElementById("Dept").value; // 🔸 Get value from hidden input
-    const selectedNames = dropdownText.split("||").map(s => s.trim()).filter(s => s); // 🔸 Use ||
-
-    // Clear all checkboxes first
+    // Start with all unchecked
     document.querySelectorAll(".Dept-checkbox").forEach(cb => cb.checked = false);
 
-    // Recheck matching boxes based on label text
-    selectedNames.forEach(name => {
-        document.querySelectorAll(".Dept-checkbox").forEach(cb => {
-            const label = document.querySelector(`label[for="${cb.id}"]`);
-            if (label && label.textContent.trim() === name) {
-                cb.checked = true;
-            }
-        });
+    allLabels.forEach((labelText, index) => {
+        if (dropdownText.includes(labelText)) {
+            const checkbox = document.querySelectorAll(".Dept-checkbox")[index];
+            checkbox.checked = true;
+        }
     });
 
-    updateHiddenFieldFromCheckboxes(); // keep this
+    updateHiddenFieldFromCheckboxes();
 }
-
-$('#Dept').val(selectedDepts.join('||')); // 🔸 Again use || here
-
-
