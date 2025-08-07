@@ -1,17 +1,19 @@
 function checkCheckboxesFromDropdownText() {
     const dropdownText = document.getElementById("DeptDropdown").value.trim();
-    const allLabels = Array.from(document.querySelectorAll(".Dept-checkbox")).map(cb => {
+
+    // Get all checkbox labels
+    const checkboxes = document.querySelectorAll(".Dept-checkbox");
+
+    // Clear all first
+    checkboxes.forEach(cb => cb.checked = false);
+
+    // Try to match full labels inside dropdown text
+    checkboxes.forEach(cb => {
         const label = document.querySelector(`label[for="${cb.id}"]`);
-        return label ? label.textContent.trim() : '';
-    });
-
-    // Start with all unchecked
-    document.querySelectorAll(".Dept-checkbox").forEach(cb => cb.checked = false);
-
-    allLabels.forEach((labelText, index) => {
+        const labelText = label ? label.textContent.trim() : "";
+        // Use a regex with word boundary or exact match
         if (dropdownText.includes(labelText)) {
-            const checkbox = document.querySelectorAll(".Dept-checkbox")[index];
-            checkbox.checked = true;
+            cb.checked = true;
         }
     });
 
