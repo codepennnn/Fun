@@ -1,58 +1,44 @@
-WITH NoticeProcessed AS (
-    SELECT 
-        n.ID,
-        n.Status,
-        n.ClosedOn,
-        n.CREATEDON AS CreatedOn,
-        n.CREATEDON AS ApplicationDate
-    FROM App_Gov_Notice n
-    WHERE NOT EXISTS (
-        SELECT 1 FROM App_Gov_Notice_Details d WHERE d.MASTER_ID = n.ID
-    )
-
-    UNION ALL
-
-    SELECT 
-        n.ID,
-        n.Status,
-        n.ClosedOn,
-        d.CREATEDON AS CreatedOn,
-        d.CREATEDON AS ApplicationDate
-    FROM App_Gov_Notice n
-    INNER JOIN (
-        SELECT *
-        FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY MASTER_ID ORDER BY CREATEDON DESC) AS rn
-            FROM App_Gov_Notice_Details
-        ) AS ranked
-        WHERE rn = 1
-    ) d ON d.MASTER_ID = n.ID
+WITH LatestDetails AS (
+    SELECT
+        MASTER_ID,
+        CREATEDON,
+        ROW_NUMBER() OVER (PARTITION BY MASTER_ID ORDER BY CREATEDON DESC) AS rn
+    FROM App_Gov_Notice_Details
 ),
 
-NoticeFiltered AS (
+CombinedNotices AS (
+    SELECT
+        n.ID,
+        n.Status,
+        n.ClosedOn,
+        COALESCE(d.CREATEDON, n.CREATEDON) AS ApplicationDate
+    FROM App_Gov_Notice n
+    LEFT JOIN LatestDetails d
+      ON d.MASTER_ID = n.ID AND d.rn = 1
+),
+
+FilteredNotices AS (
     SELECT *
-    FROM NoticeProcessed
+    FROM CombinedNotices
     WHERE ApplicationDate >= '2025-04-01' AND ApplicationDate < '2026-04-01'
 ),
 
-NoticeAggregated AS (
+AggregatedData AS (
     SELECT
         FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
-        DATENAME(MONTH, ApplicationDate) AS MonthName,
-        LEFT(DATENAME(MONTH, ApplicationDate), 3) AS MonthShort,
         DATEPART(MONTH, ApplicationDate) AS MonthNum,
         SUM(CASE WHEN Status = 'CLOSE' THEN 1 ELSE 0 END) AS Approved,
         SUM(CASE 
-                WHEN Status = 'CLOSE' 
-                  AND ClosedOn IS NOT NULL 
-                  AND DATEDIFF(DAY, ApplicationDate, ClosedOn) <= 1 
+            WHEN Status = 'CLOSE' 
+              AND ClosedOn IS NOT NULL 
+              AND DATEDIFF(DAY, ApplicationDate, ClosedOn) <= 1
             THEN 1 ELSE 0 
         END) AS ApprovedUnderSLA
-    FROM NoticeFiltered
-    GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate), DATENAME(MONTH, ApplicationDate)
+    FROM FilteredNotices
+    GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate)
 ),
 
-NoticePivoted AS (
+PivotedData AS (
     SELECT
         'Govt Notice' AS Object,
         '1 days' AS SLG,
@@ -93,6 +79,7 @@ NoticePivoted AS (
 
         ISNULL(MAX(CASE WHEN MonthNum = 3 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS MAR,
         ISNULL(MAX(CASE WHEN MonthNum = 3 THEN ApprovedUnderSLA END), 0) AS MAR_Value
+    FROM AggregatedData
 )
 
-SELECT * FROM NoticePivoted;
+SELECT * FROM PivotedData;
