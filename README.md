@@ -1,6 +1,4 @@
 WITH NoticeProcessed AS (
-
-
     SELECT 
         *,
         n.CREATEDON AS ApplicationDate
@@ -11,9 +9,8 @@ WITH NoticeProcessed AS (
 
     UNION ALL
 
-
     SELECT 
-       *,
+        *,
         d.CREATEDON AS ApplicationDate
     FROM App_Gov_Notice n
     INNER JOIN (
@@ -38,15 +35,18 @@ NoticeAggregated AS (
         DATENAME(MONTH, ApplicationDate) AS MonthName,
         LEFT(DATENAME(MONTH, ApplicationDate), 3) AS MonthShort,
         DATEPART(MONTH, ApplicationDate) AS MonthNum,
-        SUM(CASE WHEN n.Status = 'CLOSE' THEN 1 ELSE 0 END) AS Approved,
+        SUM(CASE WHEN Status = 'CLOSE' THEN 1 ELSE 0 END) AS Approved,
         SUM(CASE 
-                WHEN n.Status = 'CLOSE' 
-                  AND n.ClosedOn IS NOT NULL 
-                  AND DATEDIFF(DAY, ApplicationDate, n.ClosedOn) <= 1 
+                WHEN Status = 'CLOSE' 
+                  AND ClosedOn IS NOT NULL 
+                  AND DATEDIFF(DAY, ApplicationDate, ClosedOn) <= 1 
             THEN 1 ELSE 0 
         END) AS ApprovedUnderSLA
     FROM NoticeFiltered
-    GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate), DATENAME(MONTH, ApplicationDate)
+    GROUP BY 
+        FORMAT(ApplicationDate, 'yyyy-MM'), 
+        DATEPART(MONTH, ApplicationDate), 
+        DATENAME(MONTH, ApplicationDate)
 ),
 
 NoticePivoted AS (
@@ -93,5 +93,3 @@ NoticePivoted AS (
 )
 
 SELECT * FROM NoticePivoted;
-
-
