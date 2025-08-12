@@ -1,85 +1,106 @@
-WITH LatestDetails AS (
-    SELECT
-        MASTER_ID,
-        CREATEDON,
-        ROW_NUMBER() OVER (PARTITION BY MASTER_ID ORDER BY CREATEDON DESC) AS rn
-    FROM App_Gov_Notice_Details
-),
+<cc1:FormCointainer ID="Vendor_Block_Unblock_RFQ_record" runat="server" AllowPaging="True" AutoGenerateColumns="False"
+    PageSize="1" ShowHeader="False" Width="100%" DataSource="<%# PageRecordDataSet %>"
+     DataMember="App_RFQ_Block_Unblock" DataKeyNames="ID"
+    BindingErrorMessage="aaaaaaaa" GridLines="None">
+    <Columns>
+        <asp:TemplateField SortExpression="ID" Visible="False">
+            <ItemTemplate>
+                <asp:Label ID="ID" runat="server"></asp:Label>
+            </ItemTemplate>
+        </asp:TemplateField>
+        <asp:TemplateField>
+            <ItemTemplate>
 
-CombinedNotices AS (
-    SELECT
-        n.ID,
-        n.Status,
-        n.ClosedOn,
-        COALESCE(d.CREATEDON, n.CREATEDON) AS ApplicationDate
-    FROM App_Gov_Notice n
-    LEFT JOIN LatestDetails d
-      ON d.MASTER_ID = n.ID AND d.rn = 1
-),
+                <div class="form-inline row">
 
-FilteredNotices AS (
-    SELECT *
-    FROM CombinedNotices
-    WHERE ApplicationDate >= '2025-04-01' AND ApplicationDate < '2026-04-01'
-),
+             
+                        <div class="form-group col-md-3 col-margin mb-1">
+                         <asp:Label for="V_Code" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Vendor Code:</asp:Label>
+                         <asp:TextBox ID="V_Code" runat="server" CssClass="form-control form-control-sm col-sm-8" AutoPostBack="true"></asp:TextBox>
+                       </div>
 
-AggregatedData AS (
-    SELECT
-        FORMAT(ApplicationDate, 'yyyy-MM') AS MonthYear,
-        DATEPART(MONTH, ApplicationDate) AS MonthNum,
-        SUM(CASE WHEN Status = 'CLOSE' THEN 1 ELSE 0 END) AS Approved,
-        SUM(CASE 
-            WHEN Status = 'CLOSE' 
-              AND ClosedOn IS NOT NULL 
-              AND DATEDIFF(DAY, ApplicationDate, ClosedOn) <= 1
-            THEN 1 ELSE 0 
-        END) AS ApprovedUnderSLA
-    FROM FilteredNotices
-    GROUP BY FORMAT(ApplicationDate, 'yyyy-MM'), DATEPART(MONTH, ApplicationDate)
-),
 
-PivotedData AS (
-    SELECT
-        'Govt Notice' AS Object,
-        '1 days' AS SLG,
-        '1 days' AS RevisedSLG,
+                     <div class="form-group col-md-3 col-margin mb-1">
+                     <asp:Label for="V_Name" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Vendor Name:</asp:Label>
+                     <asp:TextBox ID="V_Name" runat="server" CssClass="form-control form-control-sm col-sm-8" Enabled="false"></asp:TextBox>
+                 </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS APR,
-        ISNULL(MAX(CASE WHEN MonthNum = 4 THEN ApprovedUnderSLA END), 0) AS APR_Value,
+                    <div class="form-group col-md-6 col-margin mb-1">
+                        <asp:Label for="Block_unblock" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Block/unblock:</asp:Label>
+                        <asp:DropDownList ID="Block_unblock" runat="server" CssClass="form-control form-control-sm col-sm-8"  AutoPostBack="true">
+                            <asp:ListItem Text="--Select--" Value="M"></asp:ListItem>
+                            <asp:ListItem Text="Block" Value="Block"></asp:ListItem>
+                            <asp:ListItem Text="Unblock" Value="Unblock"></asp:ListItem>
+                        </asp:DropDownList>
+                    </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 5 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS MAY,
-        ISNULL(MAX(CASE WHEN MonthNum = 5 THEN ApprovedUnderSLA END), 0) AS MAY_Value,
+               
+                   
+                    <div class="form-group col-md-4 col-margin mb-1">
+                        <asp:Label for="Email" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Vendor Email:</asp:Label>
+                        <asp:TextBox ID="Email" runat="server" CssClass="form-control form-control-sm col-sm-8" Enabled="false"></asp:TextBox>
+                    </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 6 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS JUN,
-        ISNULL(MAX(CASE WHEN MonthNum = 6 THEN ApprovedUnderSLA END), 0) AS JUN_Value,
 
-        ISNULL(MAX(CASE WHEN MonthNum = 7 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS JUL,
-        ISNULL(MAX(CASE WHEN MonthNum = 7 THEN ApprovedUnderSLA END), 0) AS JUL_Value,
 
-        ISNULL(MAX(CASE WHEN MonthNum = 8 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS AUG,
-        ISNULL(MAX(CASE WHEN MonthNum = 8 THEN ApprovedUnderSLA END), 0) AS AUG_Value,
+                    <div class="form-group col-md-4 col-margin mb-1">
+                        <asp:Label for="Reason" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Reason:</asp:Label>
+                        <asp:DropDownList ID="ReasonDropdown" runat="server" CssClass="form-control form-control-sm col-sm-8"  AutoPostBack="true"></asp:DropDownList>
+                        <asp:TextBox ID="Reason" runat="server" CssClass="form-control form-control-sm col-sm-8" Visible="false"></asp:TextBox>
+                    </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 9 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS SEP,
-        ISNULL(MAX(CASE WHEN MonthNum = 9 THEN ApprovedUnderSLA END), 0) AS SEP_Value,
+                    <div class="form-group col-md-4 col-margin mb-1">
+                        <asp:Label for="Internal_Remarks" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Remarks:</asp:Label>
+                        <asp:TextBox ID="Internal_Remarks" runat="server" CssClass="form-control form-control-sm col-sm-8" Rows="2" TextMode="MultiLine"></asp:TextBox>
+                    </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 10 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS OCT,
-        ISNULL(MAX(CASE WHEN MonthNum = 10 THEN ApprovedUnderSLA END), 0) AS OCT_Value,
 
-        ISNULL(MAX(CASE WHEN MonthNum = 11 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS NOV,
-        ISNULL(MAX(CASE WHEN MonthNum = 11 THEN ApprovedUnderSLA END), 0) AS NOV_Value,
 
-        ISNULL(MAX(CASE WHEN MonthNum = 12 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS DEC,
-        ISNULL(MAX(CASE WHEN MonthNum = 12 THEN ApprovedUnderSLA END), 0) AS DEC_Value,
 
-        ISNULL(MAX(CASE WHEN MonthNum = 1 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS JAN,
-        ISNULL(MAX(CASE WHEN MonthNum = 1 THEN ApprovedUnderSLA END), 0) AS JAN_Value,
+                    <div class="form-group col-md-4 col-margin mb-1">
+                        <asp:Label for="Attachment_Vendor" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">For Department Purpose:</asp:Label>
+                        <asp:FileUpload ID="Attachment_Vendor" runat="server" />
+                    </div>
+                   
 
-        ISNULL(MAX(CASE WHEN MonthNum = 2 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS FEB,
-        ISNULL(MAX(CASE WHEN MonthNum = 2 THEN ApprovedUnderSLA END), 0) AS FEB_Value,
+                          <div class="form-group col-md-4 col-margin mb-1">
+                          <asp:Label for="Attachment_Dept" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">For Department Purpose:</asp:Label>
+                          <asp:FileUpload ID="Attachment_Dept" runat="server" />
+                      </div>
 
-        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN CAST(100.0 * ApprovedUnderSLA / NULLIF(Approved, 0) AS DECIMAL(5,2)) END), 0) AS MAR,
-        ISNULL(MAX(CASE WHEN MonthNum = 3 THEN ApprovedUnderSLA END), 0) AS MAR_Value
-    FROM AggregatedData
-)
+                    <div class="form-group col-md-4 col-margin mb-1">
+                        <asp:Label for="Block_From" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Target Date For Unblock :</asp:Label>
+                        <asp:TextBox ID="Block_From" runat="server" CssClass="form-control form-control-sm col-sm-8"></asp:TextBox>
+                        <ask:CalendarExtender ID="CalendarExtender1" runat="server" Enabled="True" Format="dd/MM/yyyy" PopupPosition="TopRight" TargetControlID="T_Date" TodaysDateFormat="dd/MM/yyyy"></ask:CalendarExtender>
+                    </div>
+                
 
-SELECT * FROM PivotedData;
+                       <div class="form-group col-md-4 col-margin mb-1">
+                       <asp:Label for="Block_To" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Target Date For Unblock :</asp:Label>
+                       <asp:TextBox ID="Block_To" runat="server" CssClass="form-control form-control-sm col-sm-8"></asp:TextBox>
+                       <ask:CalendarExtender ID="CalendarExtender2" runat="server" Enabled="True" Format="dd/MM/yyyy" PopupPosition="TopRight" TargetControlID="T_Date" TodaysDateFormat="dd/MM/yyyy"></ask:CalendarExtender>
+                   </div>
+                
+                
+                
+                </div>
+
+                <div class="form-inline row">
+                    <div class="form-group col-md-6 col-margin mb-1">
+                        <asp:Label for="Createdby" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Action Taken By:</asp:Label>
+                        <asp:TextBox ID="Createdby" runat="server" CssClass="form-control form-control-sm col-sm-8" Enabled="false"></asp:TextBox>
+                    </div>
+                    <div class="form-group col-md-6 col-margin mb-1">
+                        <asp:Label for="Createdon" runat="server" CssClass="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Action Date:</asp:Label>
+                        <asp:TextBox ID="Createdon" runat="server" CssClass="form-control form-control-sm col-sm-8" Enabled="false"></asp:TextBox>
+                    </div>
+                </div>
+
+
+
+            </ItemTemplate>
+        </asp:TemplateField>
+    </Columns>
+
+    <PagerSettings Visible="False" />
+</cc1:FormCointainer>
