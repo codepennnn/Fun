@@ -1,37 +1,10 @@
-<script>
-function validate() {
-    let isValid = true;
-
-    // Reset borders
-    ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To', 'Attachment_Vendor', 'Attachment_Dept']
-    .forEach(id => {
-        let el = document.querySelector("[id$='" + id + "']");
-        if (el) el.style.border = '';
-    });
-
-    // Required fields check
-    ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To']
-    .forEach(id => {
-        let el = document.querySelector("[id$='" + id + "']");
-        if (el && !el.value.trim()) {
+// DropDown validation
+['Block_unblock', 'Reason'].forEach(id => {
+    let el = document.querySelector("[id$='" + id + "']");
+    if (el) {
+        if (el.tagName === 'SELECT' && el.value === "M") {
             el.style.border = '2px solid red';
             isValid = false;
         }
-    });
-
-    // PDF file check
-    ['Attachment_Vendor', 'Attachment_Dept']
-    .forEach(id => {
-        let fileInput = document.querySelector("[id$='" + id + "']");
-        if (fileInput && fileInput.value) {
-            let ext = fileInput.value.split('.').pop().toLowerCase();
-            if (ext !== 'pdf') {
-                fileInput.style.border = '2px solid red';
-                isValid = false;
-            }
-        }
-    });
-
-    return isValid; // false prevents postback
-}
-</script>
+    }
+});
