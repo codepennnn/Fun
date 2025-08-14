@@ -1,38 +1,42 @@
-<script>
-document.getElementById('btnSave').addEventListener('click', function (e) {
-    let isValid = true;
+l<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Get the first (and only) form on the page
+    let form = document.forms[0]; 
 
-    // Reset borders
-    ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To', 'Attachment_Vendor', 'Attachment_Dept']
-    .forEach(id => {
-        document.getElementById(id).style.border = '';
-    });
+    form.onsubmit = function () {
+        let isValid = true;
 
-    // Check required fields
-    ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To']
-    .forEach(id => {
-        let el = document.getElementById(id);
-        if (!el.value.trim()) {
-            el.style.border = '2px solid red';
-            isValid = false;
-        }
-    });
+        // Reset borders
+        ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To', 'Attachment_Vendor', 'Attachment_Dept']
+        .forEach(id => {
+            let el = document.querySelector("[id$='" + id + "']");
+            if (el) el.style.border = '';
+        });
 
-    // Check PDF files
-    ['Attachment_Vendor', 'Attachment_Dept']
-    .forEach(id => {
-        let fileInput = document.getElementById(id);
-        if (fileInput.value) {
-            let ext = fileInput.value.split('.').pop().toLowerCase();
-            if (ext !== 'pdf') {
-                fileInput.style.border = '2px solid red';
+        // Check required fields
+        ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To']
+        .forEach(id => {
+            let el = document.querySelector("[id$='" + id + "']");
+            if (el && !el.value.trim()) {
+                el.style.border = '2px solid red';
                 isValid = false;
             }
-        }
-    });
+        });
 
-    if (!isValid) {
-        e.preventDefault();
-    }
+        // Check PDF files
+        ['Attachment_Vendor', 'Attachment_Dept']
+        .forEach(id => {
+            let fileInput = document.querySelector("[id$='" + id + "']");
+            if (fileInput && fileInput.value) {
+                let ext = fileInput.value.split('.').pop().toLowerCase();
+                if (ext !== 'pdf') {
+                    fileInput.style.border = '2px solid red';
+                    isValid = false;
+                }
+            }
+        });
+
+        return isValid; // if false, form won't submit
+    };
 });
 </script>
