@@ -1,4 +1,4 @@
-<script>
+<script type="text/javascript">
 document.getElementById('<%= btnSave.ClientID %>').addEventListener('click', function (e) {
     let isValid = true;
 
@@ -7,18 +7,17 @@ document.getElementById('<%= btnSave.ClientID %>').addEventListener('click', fun
         el.style.border = '';
     });
 
-    // Required fields
+    // Required fields (use ClientID so they match rendered HTML IDs)
     let requiredFields = [
-        '<%= V_Code.ClientID %>',
-        '<%= Block_unblock.ClientID %>',
-        '<%= Reason.ClientID %>',
-        '<%= Block_From.ClientID %>',
-        '<%= Block_To.ClientID %>'
+        document.getElementById('<%= V_Code.ClientID %>'),
+        document.getElementById('<%= Block_unblock.ClientID %>'),
+        document.getElementById('<%= Reason.ClientID %>'),
+        document.getElementById('<%= Block_From.ClientID %>'),
+        document.getElementById('<%= Block_To.ClientID %>')
     ];
 
-    requiredFields.forEach(id => {
-        let field = document.getElementById(id);
-        if (!field.value.trim()) {
+    requiredFields.forEach(field => {
+        if (field && !field.value.trim()) {
             field.style.border = '2px solid red';
             isValid = false;
         }
@@ -26,12 +25,11 @@ document.getElementById('<%= btnSave.ClientID %>').addEventListener('click', fun
 
     // PDF attachment check
     let fileFields = [
-        '<%= Attachment_Vendor.ClientID %>',
-        '<%= Attachment_Dept.ClientID %>'
+        document.getElementById('<%= Attachment_Vendor.ClientID %>'),
+        document.getElementById('<%= Attachment_Dept.ClientID %>')
     ];
-    fileFields.forEach(id => {
-        let fileInput = document.getElementById(id);
-        if (fileInput.value) {
+    fileFields.forEach(fileInput => {
+        if (fileInput && fileInput.value) {
             let ext = fileInput.value.split('.').pop().toLowerCase();
             if (ext !== 'pdf') {
                 fileInput.style.border = '2px solid red';
