@@ -1,12 +1,12 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Only run on this page if the FormContainer is present
+    // Only run validation if this section exists
     if (!document.getElementById("Vendor_Block_Unblock_RFQ_record")) return;
 
     document.getElementById("form1").onsubmit = function () {
         let isValid = true;
 
-        // Reset borders first
+        // Reset borders
         ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To', 'Attachment_Vendor', 'Attachment_Dept']
         .forEach(id => {
             let el = document.querySelector("[id$='" + id + "']");
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // PDF file check
+        // PDF only check
         ['Attachment_Vendor', 'Attachment_Dept']
         .forEach(id => {
             let fileInput = document.querySelector("[id$='" + id + "']");
@@ -36,7 +36,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        return isValid; // false stops form submission
+        if (!isValid) {
+            // Stop postback
+            return false;
+        }
+
+        // Allow postback
+        return true;
     };
 });
 </script>
