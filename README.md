@@ -1,10 +1,6 @@
-// DropDown validation
-['Block_unblock', 'Reason'].forEach(id => {
-    let el = document.querySelector("[id$='" + id + "']");
-    if (el) {
-        if (el.tagName === 'SELECT' && el.value === "M") {
-            el.style.border = '2px solid red';
-            isValid = false;
-        }
-    }
-});
+
+                       <asp:TemplateField HeaderText="For Department Purpose" SortExpression="Attachment_Dept" >
+                                            <ItemTemplate>
+                                                <asp:BulletedList runat="server" ID="Attachment_Dept" CssClass="attachment-list" DisplayMode="HyperLink" OnClick="Attachment_Dept_Click" />
+                                            </ItemTemplate>
+                                        </asp:TemplateField> 
