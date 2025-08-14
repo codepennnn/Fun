@@ -1,19 +1,19 @@
-l<script>
+<script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Get the first (and only) form on the page
-    let form = document.forms[0]; 
+    // Only run on this page if the FormContainer is present
+    if (!document.getElementById("Vendor_Block_Unblock_RFQ_record")) return;
 
-    form.onsubmit = function () {
+    document.getElementById("form1").onsubmit = function () {
         let isValid = true;
 
-        // Reset borders
+        // Reset borders first
         ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To', 'Attachment_Vendor', 'Attachment_Dept']
         .forEach(id => {
             let el = document.querySelector("[id$='" + id + "']");
             if (el) el.style.border = '';
         });
 
-        // Check required fields
+        // Required fields check
         ['V_Code', 'Block_unblock', 'Reason', 'Block_From', 'Block_To']
         .forEach(id => {
             let el = document.querySelector("[id$='" + id + "']");
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Check PDF files
+        // PDF file check
         ['Attachment_Vendor', 'Attachment_Dept']
         .forEach(id => {
             let fileInput = document.querySelector("[id$='" + id + "']");
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        return isValid; // if false, form won't submit
+        return isValid; // false stops form submission
     };
 });
 </script>
