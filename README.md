@@ -1,25 +1,26 @@
+protected void Reason_SelectedIndexChanged(object sender, EventArgs e)
+{
+    // Get the Block/Unblock dropdown and Status textbox directly
+    DropDownList ddlBlockUnblock = (DropDownList)FindControl("Block_unblock");
+    TextBox txtStatus = (TextBox)FindControl("Status");
 
-        protected void Reason_SelectedIndexChanged(object sender, EventArgs e)
+    if (ddlBlockUnblock != null && txtStatus != null)
+    {
+        string type = ddlBlockUnblock.SelectedValue;
+
+        if (type == "RFQ_B")      // Block selected
         {
-            string reason = ((DropDownList)Vendor_Block_Unblock_RFQ_record.Rows[0].FindControl("Reason")).SelectedValue;
-            TextBox txtStatus = (TextBox)row.FindControl("Status");
-
-           
-            string type = reason.SelectedValue;
-
-            if (type == "RFQ_B")
-            {
-                txtStatus.Text = "RFQ_B"; // Block
-            }
-            else if (type == "RFQ_U")
-            {
-                txtStatus.Text = "RFQ_U"; // Unblock
-            }
-            else
-            {
-                txtStatus.Text = ""; 
-            }
-
-            txtStatus.Visible = true;
+            txtStatus.Text = "RFQ_B";
+        }
+        else if (type == "RFQ_U") // Unblock selected
+        {
+            txtStatus.Text = "RFQ_U";
+        }
+        else
+        {
+            txtStatus.Text = "";
         }
 
+        txtStatus.Visible = true;
+    }
+}
