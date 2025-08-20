@@ -1,60 +1,86 @@
-  public DataSet GetRecords(System.Collections.Specialized.StringDictionary FilterConditions, int totalPagesize, string sortExpression)
-  {
-      //string strSQL = " select top 111 CR.*,HM.NEXT_STATUS,case when NEXT_STATUS!='Closed' then DATEDIFF(day,STATUS_DATE,getdate()) else null end as PendingDays from App_COMPLAINT_HELP_REGISTER CR";
-      //GK
-      string strSQL = " SELECT CR.*,HM.NEXT_STATUS,CR.NEXT_USER_ID,CASE WHEN HM.NEXT_STATUS != 'Closed' THEN DATEDIFF(day, CR.STATUS_DATE, GETDATE()) ELSE NULL END AS PendingDays,DATEDIFF(day, CR.CREATED_ON, GETDATE()) AS Created_vs_Current,FD.USERNAME FROM App_COMPLAINT_HELP_REGISTER CR";
-      //GK
-      strSQL += " LEFT JOIN App_HELPDESK_STATUS_MASTER HM ON CR.COMPLAINT_STATUS = HM.STATUS_CODE ";
-      DataHelper dh = new DataHelper();
-      Dictionary<string, object> objParam = null;
-      if (FilterConditions != null && FilterConditions.Count > 0)
-      {
-          strSQL += " where 1=1";
-          objParam = new Dictionary<string, object>();
-          int cnt = FilterConditions.Count;
-          if (FilterConditions["From_COMPLAINT_DATE"] != null && FilterConditions["To_COMPLAINT_DATE"] != null)
-          {
-              string ftdt = FilterConditions["From_COMPLAINT_DATE"].Substring(6, 4) + "-" + FilterConditions["From_COMPLAINT_DATE"].Substring(3, 2) + "-" + FilterConditions["From_COMPLAINT_DATE"].Substring(0, 2);
-              string eddt = FilterConditions["To_COMPLAINT_DATE"].Substring(6, 4) + "-" + FilterConditions["To_COMPLAINT_DATE"].Substring(3, 2) + "-" + FilterConditions["To_COMPLAINT_DATE"].Substring(0, 2);
-              strSQL += " and COMPLAINT_DATE >= Convert(datetime, '" + ftdt + "') and COMPLAINT_DATE <= Convert(datetime, '" + eddt + "')";
-          }
-          if (FilterConditions["STATUS_CODE"] != null)
-              strSQL += " and STATUS_CODE= '" + FilterConditions["STATUS_CODE"] + "'";
-          if (FilterConditions["NEXT_USER_ID"] != null)
-              strSQL += " and COMPLAINT_STATUS = 'S0007' and next_user_id='" + FilterConditions["NEXT_USER_ID"].ToString() + "'";
-          if (FilterConditions["Details"] != null)
-              strSQL += "and VENDOR_CODE like '%" + FilterConditions["Details"] + "%' OR VENDOR_NAME like '%" + FilterConditions["Details"] + "%' OR COMPLAINT_NO like '%" + FilterConditions["Details"] + "%'";
-      }
-      else
-      {
-          strSQL += " where 1=1";
-          strSQL += " and ( NEXT_STATUS = 'Awaiting for TSUISL Action'  OR NEXT_STATUS ='Forwarded for TSUISL Action')        ";
-      }
-      //GK
-      strSQL += " order by COMPLAINT_DATE desc";
-      //GK
-      //strSQL += " order by COMPLAINT_NO desc";
-      return dh.GetDataset(strSQL, "App_COMPLAINT_HELP_REGISTER", objParam);
-  }
+   <div class="form-inline row">
+     <div class="form-group col-md-4 mb-1">
+         <label for="lblAll" class="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Search With:</label>
+         <asp:DropDownList ID="ddlSearch" runat="server" CssClass="form-control form-control-sm col-sm-5">
+             <asp:ListItem Value=""></asp:ListItem>
+             <asp:ListItem Value="WorkOrderNo">WorkOrder No</asp:ListItem>
+             <asp:ListItem Value="LicNo">Lic No</asp:ListItem>
+         </asp:DropDownList>
+      
+     </div>
+     <div class="form-group col-md-4 mb-1">
+         <label for="lblSearch" class="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Enter detail:</label>
+         <asp:TextBox ID="txtSearch" runat="server" CssClass="form-control form-control-sm col-sm-8"></asp:TextBox>
+       
+     </div>
+     <div class="form-group col-md-3 mb-1">
+         <asp:Button ID="btnSearch" runat="server" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-sm btn-info" ValidationGroup="search" />
+     </div>
+ </div>
+    
+    when search then show my records as per search
+    
+    <div class="w-100 border" style="overflow: auto;height:350px;">
+     
+          <asp:GridView ID="C3_Records_Grid" runat="server" AutoGenerateColumns="False"
+              AllowPaging="false" CellPadding="4" 
+
+              GridLines="None" Width="100%" 
+              HeaderStyle-Font-Size="Smaller" RowStyle-Font-Size="Smaller" >
+<AlternatingRowStyle BackColor="#cccccc" ForeColor="#284775"/>
+ <Columns>
+              <asp:TemplateField HeaderText="ID" SortExpression="ID" Visible="False">
+                  <ItemTemplate>
+                      <asp:Label ID="ID" runat="server"></asp:Label>
+                  </ItemTemplate>
+              </asp:TemplateField>
+
+                   
+          </Columns>    
+          <EditRowStyle BackColor="#ffffff" />
+          <FooterStyle BackColor="#5D7B9D" ForeColor="White" Font-Bold="True" />
+          <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
+          <PagerSettings Mode="Numeric" />
+          <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" Font-Bold="True"  CssClass="pager1" />
+          <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" />
+          <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+          <SelectedRowStyle BackColor="#E2DED6" Font-Bold="False" ForeColor="#333333" />
+          <SortedAscendingCellStyle BackColor="#E9E7E2" />
+          <SortedAscendingHeaderStyle BackColor="#506C8C" />
+          <SortedDescendingCellStyle BackColor="#FFFDF8" />
+          <SortedDescendingHeaderStyle BackColor="#6F8DAE" />
+          </asp:GridView>
+
+    </div>
 
 
-put this query in this withou any logic changing
+    and here is cs code -    protected void btnSearch_Click(object sender, EventArgs e)
+   {
+       BL_FormC3DS blobj = new BL_FormC3DS();
+               //string strSql = string.Empty;
+       DataSet ds_L1 = new DataSet();
+       string licno=
 
-SELECT CR.*,HM.NEXT_STATUS,CR.NEXT_USER_ID,CASE WHEN HM.NEXT_STATUS != 'Closed' THEN DATEDIFF(day, CR.STATUS_DATE, GETDATE()) ELSE NULL END AS PendingDays,DATEDIFF(day, CR.CREATED_ON, GETDATE()) AS Created_vs_Current,FD.USERNAME FROM App_COMPLAINT_HELP_REGISTER CR
+       ds_L1 = blobj.GetC3Detail(string wo,string licno);
+       if (ds_L1 != null && ds_L1.Tables.Count > 0 && ds_L1.Tables[0].Rows.Count > 0)
+       {
+           C3_Records_Grid.DataSource = ds_L1.Tables[0];
+           C3_Records_Grid.DataBind();
+                       
+       }
+       else
+       {
+           MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Warning, "No Data Found !!!");
+          
+       }
 
-LEFT JOIN App_HELPDESK_STATUS_MASTER HM ON CR.COMPLAINT_STATUS = HM.STATUS_CODE
-
-OUTER APPLY
-(
-    SELECT TOP 1 
-        (SELECT FL.USERNAME 
-         FROM App_HELPDESK_FWD_LIST FL 
-         WHERE FL.USERID = D.NEXT_USER_ID) AS USERNAME
-    FROM App_COMPLAINT_HELP_DETAILS D
-    WHERE D.MasterID = CR.ID
-    ORDER BY D.CREATED_ON DESC
-) FD
-
-
-WHERE STATUS_CODE = 'S0007'
-ORDER BY CR.COMPLAINT_DATE DESC;
+   } and here is BL code -     public DataSet GetC3Detail(string LicNo,string wo)
+     {
+         string strSQL = "select * from App_Vendor_form_C3_Dtl  WHERE LL_NO = @LicNo and ";
+         Dictionary<string, object> objParam = new Dictionary<string, object>();
+         objParam.Add("LicNo", LicNo);
+         DataHelper dh = new DataHelper();
+         DataSet ds = new DataSet();
+         ds = dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
+         return ds;
+     }
