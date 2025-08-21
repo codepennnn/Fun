@@ -1,9 +1,6 @@
-protected void C3_Records_Grid_RowDataBound(object sender, GridViewRowEventArgs e)
+List<string> ids = new List<string>();
+
+foreach (DataRow row in ds_L1.Tables[0].Rows)
 {
-    if (e.Row.RowType == DataControlRowType.DataRow ||
-        e.Row.RowType == DataControlRowType.Header)
-    {
-        // Assuming ID is the first column in your SELECT
-        e.Row.Cells[0].Visible = false;
-    }
+    ids.Add(row["ID"].ToString());
 }
