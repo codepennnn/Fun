@@ -1,59 +1,69 @@
-<div class="form-inline row">
-    <!-- Search By -->
-    <div class="form-group col-md-4 mb-1">
-        <label for="ddlSearch" class="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Search With:</label>
-        <asp:DropDownList ID="ddlSearch" runat="server" CssClass="form-control form-control-sm col-sm-5">
-            <asp:ListItem Value="">--Select--</asp:ListItem>
-            <asp:ListItem Value="WorkOrderNo">WorkOrder No</asp:ListItem>
-            <asp:ListItem Value="LicNo">Lic No</asp:ListItem>
-        </asp:DropDownList>
-    </div>
+Session["Username"] = txtUserName.Text.Trim();
 
-    <!-- Search Text -->
-    <div class="form-group col-md-4 mb-1">
-        <label for="txtSearch" class="m-0 mr-2 p-0 col-form-label-sm col-sm-3 font-weight-bold fs-6">Enter detail:</label>
-        <asp:TextBox ID="txtSearch" runat="server" CssClass="form-control form-control-sm col-sm-8"></asp:TextBox>
-    </div>
-
-    <!-- Search Button -->
-    <div class="form-group col-md-3 mb-1">
-        <asp:Button ID="btnSearch" runat="server" Text="Search"
-            OnClick="btnSearch_Click"
-            CssClass="btn btn-sm btn-info" ValidationGroup="search" />
-    </div>
-</div>
-
-
-<!-- GridView -->
-<!-- GridView -->
-<div class="w-100 border" style="overflow: auto; height:350px;">
-    <asp:GridView ID="C3_Records_Grid" runat="server" 
-        AutoGenerateColumns="True" 
-        AllowPaging="true" PageSize="10" 
-        AllowSorting="true"
-        CellPadding="4" GridLines="None" Width="100%"
-        OnPageIndexChanging="C3_Records_Grid_PageIndexChanging">
-
-        <AlternatingRowStyle BackColor="#cccccc" ForeColor="#284775" />
-        <EditRowStyle BackColor="#ffffff" />
-        <FooterStyle BackColor="#5D7B9D" ForeColor="White" Font-Bold="True" />
-        <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
-        <PagerSettings Mode="Numeric" />
-        <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" Font-Bold="True" CssClass="pager1" />
-        <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
-        <SelectedRowStyle BackColor="#E2DED6" Font-Bold="False" ForeColor="#333333" />
-        <SortedAscendingCellStyle BackColor="#E9E7E2" />
-        <SortedAscendingHeaderStyle BackColor="#506C8C" />
-        <SortedDescendingCellStyle BackColor="#FFFDF8" />
-        <SortedDescendingHeaderStyle BackColor="#6F8DAE" />
-    </asp:GridView>
-</div>
-
-
-protected void C3_Records_Grid_PageIndexChanging(object sender, GridViewPageEventArgs e)
+protected void btnSearch_Click(object sender, EventArgs e)
 {
-    C3_Records_Grid.PageIndex = e.NewPageIndex;
+    BL_FormC3DS blobj = new BL_FormC3DS();
+    DataSet ds_L1 = new DataSet();
 
-    // Re-run the search when changing page
-    btnSearch_Click(sender, e);
+    string searchBy = ddlSearch.SelectedValue;
+    string searchText = txtSearch.Text.Trim();
+
+    string licno = string.Empty;
+    string wo = string.Empty;
+
+    if (searchBy == "WorkOrderNo")
+        wo = searchText;
+    else if (searchBy == "LicNo")
+        licno = searchText;
+
+    // Get logged in username from session
+    string username = Session["Username"]?.ToString();
+
+    // Pass username along with search
+    ds_L1 = blobj.GetC3Detail(licno, wo, username);
+
+    if (ds_L1 != null && ds_L1.Tables.Count > 0 && ds_L1.Tables[0].Rows.Count > 0)
+    {
+        C3_Records_Grid.DataSource = ds_L1.Tables[0];
+        C3_Records_Grid.DataBind();
+    }
+    else
+    {
+        C3_Records_Grid.DataSource = null;
+        C3_Records_Grid.DataBind();
+        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Warning, "No Data Found !!!");
+    }
+}
+
+
+
+
+public DataSet GetC3Detail(string LicNo, string wo, string username)
+{
+    string strSQL = "SELECT * FROM App_Vendor_form_C3_Dtl WHERE 1=1 ";
+    Dictionary<string, object> objParam = new Dictionary<string, object>();
+
+    // Vendor usernames = 5 digits → force filter to only their data
+    if (username.Length == 5)
+    {
+        strSQL += " AND VendorID = @VendorID ";  // Assuming column name is VendorID or similar
+        objParam.Add("VendorID", username);
+    }
+
+    // Contractor usernames = 6 digits → they can see all, just apply search filter
+    if (!string.IsNullOrEmpty(LicNo))
+    {
+        strSQL += " AND LL_NO = @LicNo ";
+        objParam.Add("LicNo", LicNo);
+    }
+
+    if (!string.IsNullOrEmpty(wo))
+    {
+        strSQL += " AND WorkOrderNo = @wo ";
+        objParam.Add("wo", wo);
+    }
+
+    DataHelper dh = new DataHelper();
+    DataSet ds = dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
+    return ds;
 }
