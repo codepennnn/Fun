@@ -1,23 +1,2 @@
-protected void Month_SelectedIndexChanged(object sender, EventArgs e)
-{
-    Dictionary<string, object> ddlParams = new Dictionary<string, object>();
-
-    string selectedMonth = Month.SelectedValue;
-    string selectedYear = Year.Text;
-
-    ddlParams.Add("vendorcode", Session["UserName"].ToString());
-    ddlParams.Add("MonthWage", selectedMonth);
-    ddlParams.Add("YearWage", selectedYear);
-
-    // Get dataset again from BL
-    dsDDL = blobj.GetDropdowns("Locations_jhar_report", ddlParams);
-
-    // assign dataset to PageDDLDataset
-    PageDDLDataset = dsDDL;
-
-    // rebind the dropdown
-    LocationCode.DataBind();
-
-    // optional: add a default item at top
-    LocationCode.Items.Insert(0, new ListItem("-- Select Location --", ""));
-}
+Some NuGet packages were installed using a target framework different from the current target framework and may need to be reinstalled. Visit https://docs.nuget.org/docs/workflows/reinstalling-packages for more information.  Packages affected: EPPlus, EPPlus.Interfaces, Google.Api.Gax, Google.Api.Gax.Rest, Google.Apis, Google.Apis.Auth, Google.Apis.Bigquery.v2, Google.Apis.Core, Google.Cloud.BigQuery.V2, RBush.Signed, System.CodeDom, System.Management
+Could not install package 'Microsoft.SqlServer.Types 160.1000.6'. You are trying to install this package into a project that targets '.NETFramework,Version=v4.6.1', but the package does not contain any assembly references or content files that are compatible with that framework. For more information, contact the package author.
