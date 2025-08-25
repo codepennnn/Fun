@@ -1,37 +1,18 @@
-WITH AttendanceWithEmp AS (
-    SELECT
-        AD.VendorCode,
-        AD.WorkOrderNo,
-        EM.Sex,
-        EM.Social_Category,
-        AD.WorkManCategory,
-        EM.AadharCard,
-        CAST(AD.Present AS INT) AS Present,
-        AD.dates
-    FROM App_AttendanceDetails AD
-    OUTER APPLY (
-        SELECT TOP 1 *
-        FROM App_EmployeeMaster EM
-        WHERE EM.AadharCard = AD.AadharNo
-          AND EM.VendorCode = AD.VendorCode
-          AND EM.WorkManSlNo = AD.WorkManSl
-        ORDER BY EM.CreatedOn DESC
-    ) EM
-    WHERE AD.dates >= '2025-07-01'
-      AND AD.dates < '2025-07-31 23:59:59'
-),
+  protected void Page_Load(object sender, EventArgs e)
+  {
+ if (!IsPostBack)
+{
+ GetDropdowns("Locations_jhar_report", ddlParams);
+ }
 
-AttendanceAgg AS (
-    SELECT
-        VendorCode,
-        WorkOrderNo,
-        Sex,
-        Social_Category,
-        WorkManCategory,
-        COUNT(DISTINCT AadharCard) AS TotalWorkers,   -- unique workers
-        SUM(Present) AS TotalMandays                  -- sum of daily attendance
-    FROM AttendanceWithEmp
-    GROUP BY VendorCode, WorkOrderNo, Sex, Social_Category, WorkManCategory
-)
-SELECT * FROM AttendanceAgg;
+ }
 
+  DDLQuery.Add("Locations_jhar_report", "select '' as LocationCode ,'' as Location, 0 as ord union select  distinct LocationCode, (select LocationNM From App_LocationMaster lm where lm.LocationCode = w.LocationCode) as Location, 1 as ord from App_WagesDetailsJharkhand w where vendorcode = @vendorcode and MonthWage = @MonthWage and YearWage = @YearWage order by ord ");
+
+
+
+  and BL
+      public DataSet GetDropdowns(string DropdownNames, Dictionary<string, object> ddlParam)
+    {
+        return DropDownHelper.GetDropDownsDataset(DropdownNames, ddlParam, false);
+    }
