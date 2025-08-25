@@ -1,18 +1,30 @@
-protected void MonthWage_SelectedIndexChanged(object sender, EventArgs e)
-{
-    Dictionary<string, object> ddlParams = new Dictionary<string, object>();
 
-    string selectedMonth = Month.SelectedValue;
-    string selectedYear  = Year.Text;
+        protected void Month_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Dictionary<string, object> ddlParams = new Dictionary<string, object>();
 
-    ddlParams.Add("vendorcode", Session["UserName"].ToString());
-    ddlParams.Add("MonthWage", Convert.ToInt32(selectedMonth));
-    ddlParams.Add("YearWage", Convert.ToInt32(selectedYear));
+      
+            string selectedMonth = Month.SelectedValue;
+            string selectedYear = Year.Text;
 
-    DataSet ds = blobj.GetDropdowns("Locations_jhar_report", ddlParams);
+            ddlParams.Add("vendorcode", Session["UserName"].ToString());
+            ddlParams.Add("MonthWage", selectedMonth);
+            ddlParams.Add("YearWage", selectedYear);
+                    
+             DataSet ds = new DataSet();
+            ds = blobj.GetDropdowns("Locations_jhar_report", ddlParams);
 
-    LocationCode.DataSource = ds.Tables[0];
-    LocationCode.DataTextField = "Location";       
-    LocationCode.DataValueField = "LocationCode";  
-    LocationCode.DataBind();
-}
+
+            if (ds.Tables[0].Rows.Count > 0)
+
+                LocationCode.DataTextField = "Location";
+               LocationCode.DataValueField = "LocationCode";
+       
+
+            else
+                LocationCode.Text = "";
+
+
+
+            LocationCode.DataBind();
+        }
