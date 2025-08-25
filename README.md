@@ -1,55 +1,45 @@
-  protected void Page_Load(object sender, EventArgs e)
-  {
-      if (!IsPostBack)
-      {
-          //ReportViewer1.Visible = false;
-          // ReportViewer1.Style.Add("display", "none");
-          ReportViewer3.Visible = false;
+protected void Page_Load(object sender, EventArgs e)
+{
+    if (!IsPostBack)
+    {
+        ReportViewer3.Visible = false;
 
-          // All DropDown
-          Dictionary<string, object> ddlParams = new Dictionary<string, object>();
-          ddlParams.Add("VCode", Session["UserName"].ToString()); 
-          ddlParams.Add("V_CODE", Session["UserName"].ToString()); 
-          ddlParams.Add("Location", "abc");
-          ddlParams.Add("LocationNM", "abc");
-          ddlParams.Add("vendorcode", Session["UserName"].ToString());
+        // Prepare dropdown parameters
+        Dictionary<string, object> ddlParams = new Dictionary<string, object>();
+        ddlParams.Add("vendorcode", Session["UserName"].ToString()); 
+        ddlParams.Add("Location", "abc");      // If required by query
+        ddlParams.Add("LocationNM", "abc");    // If required by query
 
-          GetDropdowns("VendorList");
+        // First dropdown (if it needs only vendorcode)
+        GetDropdowns("VendorList", ddlParams);
 
+        // Set default month/year
+        Month.SelectedValue = DateTime.Now.Month.ToString();
+        Year.Text = DateTime.Now.Year.ToString();   // FIXED (year instead of month)
 
-   
-          Month.SelectedValue = DateTime.Now.Month.ToString();
-          Year.Text = DateTime.Now.Month.ToString();
+        // Add month/year params
+        ddlParams.Add("MonthWage", Month.SelectedValue);
+        ddlParams.Add("YearWage", Year.Text);
 
+        // Other dropdowns
+        GetDropdowns("Locations_jhar_report", ddlParams);
+        GetDropdowns("SiteByLocation", ddlParams);
+        GetDropdowns("WorkOrderNoAll_jhar_report", ddlParams);
 
-          ddlParams.Add("MonthWage", Month.SelectedValue.ToString());
-          ddlParams.Add("YearWage", Year.Text.ToString());
+        // Bind
+        VendorCode.DataBind();
+        LocationCode.DataBind();
+        SiteID.DataBind();
+        WorkOrderNo.DataBind();
 
-          GetDropdowns("Locations_jhar_report", ddlParams);
+        // Select default vendor
+        VendorCode.SelectedValue = Session["UserName"].ToString();
 
-
-
-
-          GetDropdowns("SiteByLocation", ddlParams);
-          GetDropdowns("WorkOrderNoAll_jhar_report", ddlParams);
-
-          VendorCode.DataBind();
-          LocationCode.DataBind();
-          SiteID.DataBind();
-          WorkOrderNo.DataBind();
-
-          Year.Text = DateTime.Now.Year.ToString();
-          Month.SelectedValue = DateTime.Now.Month.ToString();
-
-          VendorCode.SelectedValue = Session["UserName"].ToString();
-          //VendorName.Text = VendorCode.SelectedItem.Text.ToString();
-          DataSet ds = new DataSet();
-          ds = blobj.GetVendorName(VendorCode.SelectedValue.ToString());
-
-          if (ds.Tables[0].Rows.Count > 0)
-              VendorName.Text = ds.Tables[0].Rows[0]["VendorName"].ToString();
-          else
-              VendorName.Text = "";
-
-
-      }
+        // Load Vendor Name
+        DataSet ds = blobj.GetVendorName(VendorCode.SelectedValue);
+        if (ds.Tables[0].Rows.Count > 0)
+            VendorName.Text = ds.Tables[0].Rows[0]["VendorName"].ToString();
+        else
+            VendorName.Text = "";
+    }
+}
