@@ -1,20 +1,23 @@
-      <div class="">
-          <asp:DropDownList ID="LocationCode" runat="server" CssClass="form-control form-control-sm textboxstyle"
-              DataSource="<%# PageDDLDataset %>" DataMember="Locations_jhar_report" 
-              DataTextField="Location" DataValueField="LocationCode"  
-              OnSelectedIndexChanged="Location_SelectedIndexChanged" 
-              AutoPostBack="true" ></asp:DropDownList>
-          <asp:RequiredFieldValidator ID="RequiredFieldValidator4" class="invalid-tooltip" ValidationGroup="Search" runat="server" ErrorMessage="Required" ControlToValidate="LocationCode" ForeColor="White" Font-Size="X-Small"></asp:RequiredFieldValidator>
-      </div>
- public partial class WagesRegisterJharReport : Classes.basePage
- {
-     DataSet dsDDL = new DataSet();
-     BL_WagesRegisterJharReport blobj = new BL_WagesRegisterJharReport();
+protected void Month_SelectedIndexChanged(object sender, EventArgs e)
+{
+    Dictionary<string, object> ddlParams = new Dictionary<string, object>();
 
-     protected override void SetBaseControls()
-     {
-         base.SetBaseControls();
+    string selectedMonth = Month.SelectedValue;
+    string selectedYear = Year.Text;
 
-         PageDDLDataset = dsDDL;
-         BLObject = new BL_WagesRegisterJharReport();
-     }
+    ddlParams.Add("vendorcode", Session["UserName"].ToString());
+    ddlParams.Add("MonthWage", selectedMonth);
+    ddlParams.Add("YearWage", selectedYear);
+
+    // Get dataset again from BL
+    dsDDL = blobj.GetDropdowns("Locations_jhar_report", ddlParams);
+
+    // assign dataset to PageDDLDataset
+    PageDDLDataset = dsDDL;
+
+    // rebind the dropdown
+    LocationCode.DataBind();
+
+    // optional: add a default item at top
+    LocationCode.Items.Insert(0, new ListItem("-- Select Location --", ""));
+}
