@@ -10,7 +10,7 @@ protected void btnSearch_Click(object sender, EventArgs e)
 
     if (ds_L1 != null && ds_L1.Tables.Count > 0 && ds_L1.Tables[0].Rows.Count > 0)
     {
-        // Export dataset directly to CSV (no need for GridView binding)
+        // Export dataset directly to CSV
         Response.Clear();
         Response.Buffer = true;
         Response.AddHeader("content-disposition", "attachment;filename=Mis_Summary_Dept_Report.csv");
@@ -19,7 +19,7 @@ protected void btnSearch_Click(object sender, EventArgs e)
 
         using (StringWriter sw = new StringWriter())
         {
-            // Write header
+            // Write header row
             for (int i = 0; i < ds_L1.Tables[0].Columns.Count; i++)
             {
                 sw.Write(ds_L1.Tables[0].Columns[i].ColumnName);
@@ -28,11 +28,9 @@ protected void btnSearch_Click(object sender, EventArgs e)
             }
             sw.Write(sw.NewLine);
 
-            // Write data
-            int rowIndex = 1;
+            // Write data rows
             foreach (DataRow dr in ds_L1.Tables[0].Rows)
             {
-                sw.Write(rowIndex + ","); // Serial No
                 for (int i = 0; i < ds_L1.Tables[0].Columns.Count; i++)
                 {
                     string cellData = dr[i].ToString().Replace(",", " "); // avoid breaking CSV
@@ -42,7 +40,6 @@ protected void btnSearch_Click(object sender, EventArgs e)
                         sw.Write(",");
                 }
                 sw.Write(sw.NewLine);
-                rowIndex++;
             }
 
             Response.Output.Write(sw.ToString());
