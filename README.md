@@ -1,54 +1,35 @@
-protected void btnSearch_Click(object sender, EventArgs e)
-{
-    BL_Compliance_MIS blobj = new BL_Compliance_MIS();
-    DataSet ds_L1 = new DataSet();
+     public async Task<IEnumerable<WorkOrderExemptionResult>> GetExemptionsAsync(string vendorCode, string workOrder)
+     {
+         using (var connection = new SqlConnection(_connectionString))
+         {
+             string sql = @"
+     SELECT TOP 1
+         VendorCode,
+         WorkOrderNo,
+         CASE 
+             WHEN DATEDIFF(DAY, Approved_On, GETDATE()) <= Exemption_CC THEN 'YES'
+             ELSE 'NO'
+         END AS IsExemption
+     FROM App_WorkOrder_Exemption
+     WHERE VendorCode = @VendorCode
+       AND Status = 'Approved'
+       AND (
+             WorkOrderNo = @WorkOrder
+             OR WorkOrderNo LIKE @LikePattern1
+             OR WorkOrderNo LIKE @LikePattern2
+             OR WorkOrderNo LIKE @LikePattern3
+       )
+     ORDER BY Approved_On DESC";
 
-    string MonthSearch = Month.SelectedValue;
-    string YearSearch = Year.SelectedValue;
+             var result = await connection.QueryAsync<WorkOrderExemptionResult>(sql, new
+             {
+                 VendorCode = vendorCode,
+                 WorkOrder = workOrder,
+                 LikePattern1 = workOrder + ",%",
+                 LikePattern2 = "%," + workOrder + ",%",
+                 LikePattern3 = "%," + workOrder
+             });
 
-    ds_L1 = blobj.GetContractorWorker(MonthSearch, YearSearch);
-
-    if (ds_L1 != null && ds_L1.Tables.Count > 0 && ds_L1.Tables[0].Rows.Count > 0)
-    {
-        // Export dataset directly to CSV
-        Response.Clear();
-        Response.Buffer = true;
-        Response.AddHeader("content-disposition", "attachment;filename=Mis_Summary_Dept_Report.csv");
-        Response.ContentType = "text/csv";
-        Response.Charset = "";
-
-        using (StringWriter sw = new StringWriter())
-        {
-            // Write header row
-            for (int i = 0; i < ds_L1.Tables[0].Columns.Count; i++)
-            {
-                sw.Write(ds_L1.Tables[0].Columns[i].ColumnName);
-                if (i < ds_L1.Tables[0].Columns.Count - 1)
-                    sw.Write(",");
-            }
-            sw.Write(sw.NewLine);
-
-            // Write data rows
-            foreach (DataRow dr in ds_L1.Tables[0].Rows)
-            {
-                for (int i = 0; i < ds_L1.Tables[0].Columns.Count; i++)
-                {
-                    string cellData = dr[i].ToString().Replace(",", " "); // avoid breaking CSV
-                    sw.Write(cellData);
-
-                    if (i < ds_L1.Tables[0].Columns.Count - 1)
-                        sw.Write(",");
-                }
-                sw.Write(sw.NewLine);
-            }
-
-            Response.Output.Write(sw.ToString());
-            Response.Flush();
-            Response.End();
-        }
-    }
-    else
-    {
-        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Warning, "No Data Found !!!");
-    }
-}
+             return result;
+         }
+     }
