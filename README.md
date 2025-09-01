@@ -1,25 +1,40 @@
-[HttpGet("check-exemptions")]
-public async Task<IActionResult> CheckExemptions(string vendorCode, string workOrders)
+public async Task<object> GetExemptionsAsync(string vendorCode, string workOrder)
 {
-    try
+    using (var connection = new SqlConnection(_connectionString))
     {
-        var workOrder = workOrders.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                  .Select(w => w.Trim())
-                                  .FirstOrDefault();
+        string sql = @"
+            SELECT TOP 1
+                VendorCode,
+                WorkOrderNo,
+                CASE 
+                    WHEN DATEDIFF(DAY, Approved_On, GETDATE()) <= Exemption_CC THEN 'YES'
+                    ELSE 'NO'
+                END AS IsExemption
+            FROM App_WorkOrder_Exemption
+            WHERE VendorCode = @VendorCode
+              AND Status = 'Approved'
+              AND (
+                    WorkOrderNo = @WorkOrder
+                    OR WorkOrderNo LIKE @LikePattern1
+                    OR WorkOrderNo LIKE @LikePattern2
+                    OR WorkOrderNo LIKE @LikePattern3
+              )
+            ORDER BY Approved_On DESC";
 
-        if (string.IsNullOrWhiteSpace(workOrder))
-            return BadRequest("Invalid work order.");
+        var result = await connection.QueryAsync<WorkOrderExemptionResult>(sql, new
+        {
+            VendorCode = vendorCode,
+            WorkOrder = workOrder,
+            LikePattern1 = workOrder + ",%",
+            LikePattern2 = "%," + workOrder + ",%",
+            LikePattern3 = "%," + workOrder
+        });
 
-        var data = await ExemtionContext.GetExemptionsAsync(vendorCode, workOrder);
+        if (!result.Any())
+        {
+            return new { Message = "Data not found" };
+        }
 
-        if (data == null || !data.Any())
-            return NotFound("No exemption found.");
-
-        return Ok(data);
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error checking exemptions");
-        return StatusCode(500, "Internal server error");
+        return result;
     }
 }
