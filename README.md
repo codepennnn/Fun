@@ -30,7 +30,8 @@ public async Task<object> GetExemptionsAsync(string vendorCode, string workOrder
             LikePattern3 = "%," + workOrder
         });
 
-        if (!result.Any())
+        // Handle null or empty safely
+        if (result == null || !result.Any())
         {
             return new { Message = "Data not found" };
         }
