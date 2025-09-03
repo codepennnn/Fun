@@ -1,41 +1,13 @@
-public async Task<object> GetExemptionsAsync(string vendorCode, string workOrder)
-{
-    using (var connection = new SqlConnection(_connectionString))
-    {
-        string sql = @"
-            SELECT TOP 1
-                VendorCode,
-                WorkOrderNo,
-                CASE 
-                    WHEN DATEDIFF(DAY, Approved_On, GETDATE()) <= Exemption_CC THEN 'YES'
-                    ELSE 'NO'
-                END AS IsExemption
-            FROM App_WorkOrder_Exemption
-            WHERE VendorCode = @VendorCode
-              AND Status = 'Approved'
-              AND (
-                    WorkOrderNo = @WorkOrder
-                    OR WorkOrderNo LIKE @LikePattern1
-                    OR WorkOrderNo LIKE @LikePattern2
-                    OR WorkOrderNo LIKE @LikePattern3
-              )
-            ORDER BY Approved_On DESC";
+ if (Pre_ESI[i].value === "" || Pre_ESI[i].value === null) {
 
-        var result = await connection.QueryAsync<WorkOrderExemptionResult>(sql, new
-        {
-            VendorCode = vendorCode,
-            WorkOrder = workOrder,
-            LikePattern1 = workOrder + ",%",
-            LikePattern2 = "%," + workOrder + ",%",
-            LikePattern3 = "%," + workOrder
-        });
+     if (total_gross_as_per_rate >= 21000) {
+         mESIAmt = 0;
+         mESIAmt3_25 = 0;
+         mESIAmt4 = 0;
 
-        // Handle null or empty safely
-        if (result == null || !result.Any())
-        {
-            return new { Message = "Data not found" };
-        }
-
-        return result;
-    }
-}
+     } else {
+         //alert(TotalWages[i].value);
+         mESIAmt = (parseFloat(TotalWages[i].value) * 0.0075);
+         mESIAmt3_25 = (parseFloat(TotalWages[i].value) * 0.0325);
+         mESIAmt4 = (parseFloat(TotalWages[i].value) * 0.04);
+     }
