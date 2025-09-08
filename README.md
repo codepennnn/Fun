@@ -1,37 +1,37 @@
-public DataSet UpdateLicenseValidity(string licNo, DateTime validityToDate)
-{
-    string strSQL = "UPDATE App_LabourLicenseSubmission SET LToDate = @ToDate WHERE LicNo = @LicNo";
+   if (result)
+            {
+                DataSet ds1 = new DataSet();
+                BL_LabourApproval blobj1 = new BL_LabourApproval();
+                string licNo = PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["LicNo"].ToString();
+                DateTime validityToDate = Convert.ToDateTime(PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["ToDate"]);
+                ds1 = blobj1.UpdateLicenseValidity(licNo, validityToDate);
 
-    Dictionary<string, object> objParam = new Dictionary<string, object>();
-    objParam.Add("@ToDate", validityToDate);
-    objParam.Add("@LicNo", licNo);
+                //   after this one more update function for c3 closer date. fetch forech record according to licno then update c3closerdate which min from 
+                //between min(PERIOD_CONTRACT_TO,LL_VALID_UPTO) 
+   public DataSet UpdateLicenseValidity(string licNo, DateTime validityToDate)
+        {
+            string strSQL = "UPDATE App_Vendor_form_C3_Dtl SET LL_VALID_UPTO = @ToDate WHERE LicNo = @LicNo";
 
-    DataHelper dh = new DataHelper();
-    return dh.GetDataset(strSQL, "App_LabourLicenseSubmission", objParam);
-}
+            Dictionary<string, object> objParam = new Dictionary<string, object>();
+            objParam.Add("@ToDate", validityToDate);
+            objParam.Add("@LicNo", licNo);
+
+            DataHelper dh = new DataHelper();
+            return dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
+        }
 
 
-public void UpdateLicenseAndCheck(string licNo, DateTime validityToDate)
-{
-    // First update license validity
-    string strSQL = "UPDATE App_LabourLicenseSubmission SET LToDate = @ToDate WHERE LicNo = @LicNo";
-    Dictionary<string, object> objParam = new Dictionary<string, object>();
-    objParam.Add("@ToDate", validityToDate);
-    objParam.Add("@LicNo", licNo);
 
-    DataHelper dh = new DataHelper();
-    dh.ExecuteNonQuery(strSQL, objParam);
+        public DataSet UpdateC3CloserValidity(string licNo, DateTime lowestvalidity)
+        {
 
-    // Then check condition (pseudo SQL, adjust to your logic)
-    string checkSQL = @"
-        UPDATE App_LabourLicenseSubmission 
-        SET c3closer = 'Yes'
-        WHERE LicNo = @LicNo 
-          AND (WONo_ToDate < @ToDate OR LicNo_ToDate < @ToDate)";
+            string strSQL = @"UPDATE App_Vendor_form_C3_Dtl SET C3CloserDate = ''  LicNo = @LicNo ";
 
-    Dictionary<string, object> checkParam = new Dictionary<string, object>();
-    checkParam.Add("@LicNo", licNo);
-    checkParam.Add("@ToDate", validityToDate);
 
-    dh.ExecuteNonQuery(checkSQL, checkParam);
-}
+            Dictionary<string, object> objParam = new Dictionary<string, object>();
+            objParam.Add("@", lowestvalidity);
+            objParam.Add("@LicNo", licNo);
+
+            DataHelper dh = new DataHelper();
+            return dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
+        }
