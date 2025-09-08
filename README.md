@@ -127,3 +127,20 @@
             {
                 MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success, "Record Not saved !");
             }
+
+
+
+
+
+   public DataSet UpdateLicenseValidity(string licNo, DateTime validityToDate)
+        {
+
+            string strSQL = "@UPDATE App_LabourLicenseSubmission SET LToDate = @ToDate WHERE LicNo = @LicNo";
+            Dictionary<string, object> objParam = new Dictionary<string, object>();
+            objParam.Add("", );
+            objParam.Add("", );
+
+            DataHelper dh = new DataHelper();
+            return dh.GetDataset(strSQL, "App_LabourLicenseSubmission", objParam);
+
+        }
