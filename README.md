@@ -1,37 +1,35 @@
-   if (result)
-            {
-                DataSet ds1 = new DataSet();
-                BL_LabourApproval blobj1 = new BL_LabourApproval();
-                string licNo = PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["LicNo"].ToString();
-                DateTime validityToDate = Convert.ToDateTime(PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["ToDate"]);
-                ds1 = blobj1.UpdateLicenseValidity(licNo, validityToDate);
+public DataSet UpdateC3CloserValidity(string licNo)
+{
+    // SQL will update C3CloserDate with the minimum of PERIOD_CONTRACT_TO and LL_VALID_UPTO
+    string strSQL = @"
+        UPDATE App_Vendor_form_C3_Dtl
+        SET C3CloserDate = (
+            SELECT MIN(v) 
+            FROM (VALUES (PERIOD_CONTRACT_TO), (LL_VALID_UPTO)) AS value(v)
+        )
+        WHERE LicNo = @LicNo";
 
-                //   after this one more update function for c3 closer date. fetch forech record according to licno then update c3closerdate which min from 
-                //between min(PERIOD_CONTRACT_TO,LL_VALID_UPTO) 
-   public DataSet UpdateLicenseValidity(string licNo, DateTime validityToDate)
-        {
-            string strSQL = "UPDATE App_Vendor_form_C3_Dtl SET LL_VALID_UPTO = @ToDate WHERE LicNo = @LicNo";
+    Dictionary<string, object> objParam = new Dictionary<string, object>();
+    objParam.Add("@LicNo", licNo);
 
-            Dictionary<string, object> objParam = new Dictionary<string, object>();
-            objParam.Add("@ToDate", validityToDate);
-            objParam.Add("@LicNo", licNo);
-
-            DataHelper dh = new DataHelper();
-            return dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
-        }
+    DataHelper dh = new DataHelper();
+    return dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
+}
 
 
+if (result)
+{
+    DataSet ds1 = new DataSet();
+    BL_LabourApproval blobj1 = new BL_LabourApproval();
 
-        public DataSet UpdateC3CloserValidity(string licNo, DateTime lowestvalidity)
-        {
+    string licNo = PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["LicNo"].ToString();
+    DateTime validityToDate = Convert.ToDateTime(PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["ToDate"]);
 
-            string strSQL = @"UPDATE App_Vendor_form_C3_Dtl SET C3CloserDate = ''  LicNo = @LicNo ";
+    // Step 1: Update LL_VALID_UPTO
+    ds1 = blobj1.UpdateLicenseValidity(licNo, validityToDate);
 
+    // Step 2: Update C3CloserDate based on min(PERIOD_CONTRACT_TO, LL_VALID_UPTO)
+    blobj1.UpdateC3CloserValidity(licNo);
 
-            Dictionary<string, object> objParam = new Dictionary<string, object>();
-            objParam.Add("@", lowestvalidity);
-            objParam.Add("@LicNo", licNo);
-
-            DataHelper dh = new DataHelper();
-            return dh.GetDataset(strSQL, "App_Vendor_form_C3_Dtl", objParam);
-        }
+    // ... continue with Approved/Rejected email logic
+}
