@@ -1,22 +1,20 @@
-<div class="form-group col-md-12 mb-1">
-
-
-                                               <label for="lblComplianceType" class="m-0 mr-5 p-0 col-form-label-sm col-sm-2  font-weight-bold fs-6 justify-content-start">Compliance Type:
-                                                     <span style="color: #FF0000;">*</span>
-                                                </label>
-
-
-                                                <asp:CheckBoxList ID="ComplianceType" runat="server" 
-                                                                     CssClass="form-control-sm radio col-sm-5"
-                                                                     RepeatDirection="Horizontal">
-                                                    <asp:ListItem> Wage</asp:ListItem>
-                                                    <asp:ListItem> PF & ESI</asp:ListItem>
-                                                    <asp:ListItem> Leave</asp:ListItem>
-                                                    <asp:ListItem> Bonus</asp:ListItem>
-                                                    <asp:ListItem> Labour License</asp:ListItem>
-                                                    <asp:ListItem> Grievance</asp:ListItem>
-                                                    <asp:ListItem> Notice</asp:ListItem>
-                                                </asp:CheckBoxList>
-
-
-                                            </div>
+<div class="form-group row mb-3">
+    <label for="ComplianceType" 
+           class="col-sm-4 col-form-label col-form-label-sm font-weight-bold">
+        Compliance Type: <span class="text-danger">*</span>
+    </label>
+    <div class="col-sm-8">
+        <asp:CheckBoxList ID="ComplianceType" runat="server" 
+                          CssClass="form-check"
+                          RepeatLayout="Flow" 
+                          RepeatDirection="Vertical">
+            <asp:ListItem CssClass="form-check-input">Wage</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">PF & ESI</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">Leave</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">Bonus</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">Labour License</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">Grievance</asp:ListItem>
+            <asp:ListItem CssClass="form-check-input">Notice</asp:ListItem>
+        </asp:CheckBoxList>
+    </div>
+</div>
