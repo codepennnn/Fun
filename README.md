@@ -1,7 +1,7 @@
-                                        <asp:CustomValidator ID="CustomValidator3" runat="server" ClientValidationFunction="Validate" ValidationGroup="Save" ControlToValidate="Remarks" ValidateEmptyText="true"></asp:CustomValidator>
+function finalValidation() {
+    // run ASP.NET validators for group "Save"
+    if (!Page_ClientValidate('Save')) return false;
 
-
-
-                                        my custom validator works
-
-                                         <asp:Button ID="btnSave" runat="server"  Text="Submit" OnClick="btnSave_Click" CssClass="btn btn-sm btn-info" ValidationGroup="Save" OnClientClick="return validateCompliance();" />
+    // then your checkbox check
+    return validateCompliance();
+}
