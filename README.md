@@ -1,23 +1,17 @@
-public void Tracelog(DateTime start, DateTime end, string taskname, string status)
+ if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+ {
+     Tracelog(start, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),"HelpDesk_Complaint_Close", "No complaints to update");
+     return;
+ }
+
+ public void Tracelog(string start, string end, string taskname, string status)
 {
-    using (var con = new SqlConnection("Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123"))
-    {
-        string query = @"
-            INSERT INTO App_JUSCOTASKDETAILS
-            (UPDATEDAT, UPDATEDBY, STARTTIME, ENDTIME, TASKNAME, STATUS)
-            VALUES (@UpdatedAt, @UpdatedBy, @StartTime, @EndTime, @TaskName, @Status)";
 
-        using (var cmd = new SqlCommand(query, con))
-        {
-            cmd.Parameters.Add("@UpdatedAt", SqlDbType.DateTime).Value = DateTime.Now;
-            cmd.Parameters.Add("@UpdatedBy", SqlDbType.VarChar).Value = "000001";
-            cmd.Parameters.Add("@StartTime", SqlDbType.DateTime).Value = start;
-            cmd.Parameters.Add("@EndTime",   SqlDbType.DateTime).Value = end;
-            cmd.Parameters.Add("@TaskName",  SqlDbType.VarChar).Value = taskname;
-            cmd.Parameters.Add("@Status",    SqlDbType.VarChar).Value = status;
+    SqlConnection con3 = new SqlConnection("Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123");
+    con3.Open();
+    String s1 = "Insert into App_JUSCOTASKDETAILS (UPDATEDAT,UPDATEDBY,STARTTIME,ENDTIME,TASKNAME,STATUS) values('" + System.DateTime.Now + "','000001','" + start + "','" + end + "','" + taskname + "','" + status + "') ";
+    SqlCommand cmd = new SqlCommand(s1, con3);
+    cmd.ExecuteNonQuery();
+    con3.Close();
 
-            con.Open();
-            cmd.ExecuteNonQuery();
-        }
-    }
 }
