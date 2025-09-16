@@ -1,4 +1,7 @@
-string emailTo = string.Join(", ",
-    new[] { row["EMAIL_ID"].ToString(), row["V_Email"].ToString() }
-    .Where(s => !string.IsNullOrWhiteSpace(s))
-);
+if (!string.IsNullOrWhiteSpace(emailTo))
+{
+    foreach (var addr in emailTo.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+    {
+        mail.To.Add(addr.Trim());
+    }
+}
