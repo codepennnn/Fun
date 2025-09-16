@@ -39,3 +39,11 @@ catch (Exception ex)
     string taskEnd = DateTime.Now.ToString();
     Tracelog(taskStart, taskEnd, "Complaint_service", "Failed: " + ex.Message);
 }
+
+
+  <asp:TemplateField HeaderText="Leave Payable Amount" SortExpression="Vendor Code" HeaderStyle-Width="130px">
+      <ItemTemplate>
+          <asp:TextBox ID="Leave_Payable_Amount" runat="server" CssClass="form-control form-control-sm col-sm-11" Width="100%" ReadOnly="true" ></asp:TextBox>
+      </ItemTemplate>
+  </asp:TemplateField>
+  document.getElementById("MainContent_Leave_Generation_Details_Leave_Payable_Amount_" + i).value = Leave_Amnt;
