@@ -1,89 +1,82 @@
-public void Complaint_service()
-{
-    string connStr = "Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123";
+Select SUBSTRING((select * from(select ',' + m.Email COLLATE database_default 'data()' from UserLoginDB.dbo.aspnet_Users as q,
+UserLoginDB.dbo.aspnet_Membership m where q.UserName = '10511' and m.UserId = q.UserId union select ',' 
++ Email from App_Vendor_Representative   where CREATEDBY = '10511'   ) A FOR XML PATH('') ), 2 , 9999) As Email
 
-    string sql = @"
-        SELECT 
-            m.ID,
-            m.vendor_code,
-            m.vendor_name,
-            m.COMPLAINT_NO,
-            m.EMAIL_ID
-        FROM App_COMPLAINT_HELP_REGISTER AS m
-        INNER JOIN App_COMPLAINT_HELP_DETAILS AS d ON m.ID = d.MasterID
-        WHERE m.COMPLAINT_STATUS = 'S0002'
-        GROUP BY m.ID, m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.EMAIL_ID
-        HAVING DATEDIFF(DAY, MAX(d.UPDT_DATE), GETDATE()) > 3;
-    ";
+ i want to also takes email from this and also add this email id in TO
 
-    using (var con = new SqlConnection(connStr))
-    using (var da = new SqlDataAdapter(sql, con))
-    {
-        var ds = new DataSet();
-        da.Fill(ds);
-
-        if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
-            return;   // nothing to process
-
-        using (var updateCmd = new SqlCommand(
-            "UPDATE App_COMPLAINT_HELP_REGISTER SET COMPLAINT_STATUS = 'S0004', STATUS_DATE = GETDATE() WHERE ID = @ID",
-            con))
+ 
+        public void Complaint_service()
         {
-            updateCmd.Parameters.Add("@ID", SqlDbType.Int);
+            string connStr = "Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123";
 
-            con.Open();
+            string sql = @"SELECT m.ID, m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.EMAIL_ID FROM App_COMPLAINT_HELP_REGISTER AS m INNER JOIN App_COMPLAINT_HELP_DETAILS AS d ON m.ID = d.MasterID WHERE m.COMPLAINT_STATUS = 'S0002' GROUP BY m.ID, m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.EMAIL_ID HAVING DATEDIFF(DAY, MAX(d.UPDT_DATE), GETDATE()) > 3;";
 
-            foreach (DataRow row in ds.Tables[0].Rows)
+            using (var con = new SqlConnection(connStr))
+            using (var da = new SqlDataAdapter(sql, con))
             {
-                int id = Convert.ToInt32(row["ID"]);
-                string vcode = row["vendor_code"].ToString();
-                string vname = row["vendor_name"].ToString();
-                string complaintNo = row["COMPLAINT_NO"].ToString();
-                string emailTo = row["EMAIL_ID"].ToString();
+                var ds = new DataSet();
+                da.Fill(ds);
 
-                // Update status safely
-                updateCmd.Parameters["@ID"].Value = id;
-                updateCmd.ExecuteNonQuery();
+                if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+                    return;   
 
-                // Build email body
-                string body = BuildEmailBody(vcode, vname, complaintNo);
-
-                if (!string.IsNullOrWhiteSpace(emailTo))
+                using (var updateCmd = new SqlCommand(
+                    "UPDATE App_COMPLAINT_HELP_REGISTER SET COMPLAINT_STATUS = 'S0004', STATUS_DATE = GETDATE() WHERE ID = @ID",
+                    con))
                 {
-                    using (var mail = new MailMessage())
-                    {
-                        mail.From = new MailAddress("automatic_mail@tatasteel.com");
-                        mail.To.Add(emailTo);
-                        mail.CC.Add("sidheshwar.vishwakarma@tatasteel.com");
-                        mail.Subject = $"Regarding Closed Complaint of M/s {vname} (Vendor Code {vcode})";
-                        mail.Body = body;
-                        mail.IsBodyHtml = true;
+                    updateCmd.Parameters.Add("@ID", SqlDbType.Int);
 
-                        using (var smtp = new SmtpClient("144.0.11.253", 25))
+                    con.Open();
+
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        int id = Convert.ToInt32(row["ID"]);
+                        string vcode = row["vendor_code"].ToString();
+                        string vname = row["vendor_name"].ToString();
+                        string complaintNo = row["COMPLAINT_NO"].ToString();
+                        string emailTo = row["EMAIL_ID"].ToString();
+
+                     
+                        updateCmd.Parameters["@ID"].Value = id;
+                        updateCmd.ExecuteNonQuery();
+
+                 
+                        string body = BuildEmailBody(vcode, vname, complaintNo);
+
+                        if (!string.IsNullOrWhiteSpace(emailTo))
                         {
-                            smtp.Timeout = 20000;
-                            smtp.Send(mail);
+                            using (var mail = new MailMessage())
+                            {
+                                mail.From = new MailAddress("automatic_mail@tatasteel.com");
+                                mail.To.Add(emailTo);
+                                mail.CC.Add("sidheshwar.vishwakarma@tatasteel.com");
+                                mail.Subject = $"Regarding Closed Complaint of M/s {vname} (Vendor Code {vcode})";
+                                mail.Body = body;
+                                mail.IsBodyHtml = true;
+
+                                using (var smtp = new SmtpClient("144.0.11.253", 25))
+                                {
+                                    smtp.Timeout = 20000;
+                                    smtp.Send(mail);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
 
-/// <summary>
-/// Simple helper to create the HTML email
-/// </summary>
-private string BuildEmailBody(string vcode, string vname, string complaintNo)
-{
-    return $@"
+       
+        private string BuildEmailBody(string vcode, string vname, string complaintNo)
+        {
+            return $@"
     <html>
     <body>
         <b>
         Dear {vname} ({vcode})<br/><br/>
         Your complaint number <strong>{complaintNo}</strong> has been closed because no response was received after three days.<br/><br/>
         For any clarification please contact Contractor Cell through the Online Helpdesk:
-        https://services.juscoltd.com/CLMS <br/><br/>
+        https://services.tsuisl.co.in/CLMS <br/><br/>
         Note: Please do not reply to this system generated mail.<br/><br/>
         Thanks &amp; Regards<br/>
         Contractors' Cell<br/>
@@ -91,4 +84,9 @@ private string BuildEmailBody(string vcode, string vname, string complaintNo)
         </b>
     </body>
     </html>";
-}
+        }
+
+
+
+
+
