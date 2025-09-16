@@ -1,49 +1,102 @@
-private string BuildEmailBody(string vcode, string vname, string complaintNo)
-{
-    return $@"
-<html>
-<body>
-    <div style='text-align: justify; font-family: Arial, sans-serif;'>
-        <b>
-        Dear Vendor Partner, {vname} ({vcode})<br/><br/>
-        We had awaited your response to the complaint you lodged - <strong>{complaintNo}</strong> for over 10 days. In the absence of any communication, we assume that either your concerns have been resolved or you no longer wish to pursue the matter. As the complaint was not formally closed from your end, we are proceeding to close it. If you were unable to respond due to any reason and still wish to raise the issue, you may submit a fresh complaint.<br/><br/>
-        For any clarification please contact Contractor Cell through the Online Helpdesk:
-        <a href='https://services.tsuisl.co.in/CLMS'>CLMS Online Helpdesk</a><br/><br/>
-        Note: Please do not reply to this system generated mail.<br/><br/>
-        Thanks &amp; Regards<br/>
-        Contractors' Cell<br/>
-        TATA STEEL UISL
-        </b>
-    </div>
-</body>
-</html>";
-}
+ public void Complaint_service()
+ {
+     string start=System.DateTime.Now.ToString();    
+
+     string connStr = "Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123";
+
+     string sql = @"SELECT m.ID,  m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.COMPLAINT_STATUS,  m.EMAIL_ID +','+isnull((select top 1 EMAIL = STUFF((SELECT DISTINCT ', ' + EMAIL from App_Vendor_Representative as b where b.CREATEDBY = m.vendor_code FOR XML PATH('')), 1, 2, '') FROM App_Vendor_Representative as a),'') E_Mail,isnull (v.EMAIL,'') as V_Email,m.CREATED_BY FROM  App_COMPLAINT_HELP_REGISTER AS m INNER JOIN  App_COMPLAINT_HELP_DETAILS  AS d ON  m.ID = d.MasterID LEFT JOIN App_Vendor_Reg AS v  ON v.V_CODE = m.VENDOR_CODE WHERE m.COMPLAINT_STATUS = 'S0002' and m.ID='39314ED4-73CA-4A45-8148-61D64B10BC7C' GROUP BY  m.ID,  m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.COMPLAINT_STATUS, m.EMAIL_ID , v.EMAIL, m.CREATED_BY HAVING DATEDIFF(DAY, MAX(d.UPDT_DATE), GETDATE()) > 10;";
+
+     using (var con = new SqlConnection(connStr))
+     using (var da = new SqlDataAdapter(sql, con))
+     {
+         var ds = new DataSet();
+         da.Fill(ds);
+
+         if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+             return;   
+
+         using (var updateCmd = new SqlCommand(
+             "UPDATE App_COMPLAINT_HELP_REGISTER SET COMPLAINT_STATUS = 'S0004', STATUS_DATE = GETDATE() WHERE ID = @ID",
+             con))
+         {
+             updateCmd.Parameters.Add("@ID", SqlDbType.UniqueIdentifier);
+
+             con.Open();
+
+             foreach (DataRow row in ds.Tables[0].Rows)
+             {
+                 Guid id = Guid.Parse(row["ID"].ToString());
+                 string vcode = row["vendor_code"].ToString();
+                 string vname = row["vendor_name"].ToString();
+                 string complaintNo = row["COMPLAINT_NO"].ToString();
+                 string emailTo = string.Join(", ",new[] { row["E_Mail"].ToString(), row["V_Email"].ToString() }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                 string createdBy = row["CREATED_BY"].ToString();
 
 
-string taskStart = DateTime.Now.ToString();
-Tracelog(taskStart, "", "Complaint_service", "Started");
+                 updateCmd.Parameters["@ID"].Value = id;
+                 updateCmd.ExecuteNonQuery();
 
-try
-{
-    // Your existing code to select and update complaints
-    foreach (DataRow row in ds.Tables[0].Rows)
-    {
-        // ... update complaint and send email ...
-    }
+                           
 
-    string taskEnd = DateTime.Now.ToString();
-    Tracelog(taskStart, taskEnd, "Complaint_service", "Success");
-}
-catch (Exception ex)
-{
-    string taskEnd = DateTime.Now.ToString();
-    Tracelog(taskStart, taskEnd, "Complaint_service", "Failed: " + ex.Message);
-}
+                 string body = BuildEmailBody(vcode, vname, complaintNo);
+
+                 if (!string.IsNullOrWhiteSpace(emailTo))
+                 {
 
 
-  <asp:TemplateField HeaderText="Leave Payable Amount" SortExpression="Vendor Code" HeaderStyle-Width="130px">
-      <ItemTemplate>
-          <asp:TextBox ID="Leave_Payable_Amount" runat="server" CssClass="form-control form-control-sm col-sm-11" Width="100%" ReadOnly="true" ></asp:TextBox>
-      </ItemTemplate>
-  </asp:TemplateField>
-  document.getElementById("MainContent_Leave_Generation_Details_Leave_Payable_Amount_" + i).value = Leave_Amnt;
+
+                     using (var mail = new MailMessage())
+                     {
+                         mail.From = new MailAddress("automatic_mail@tatasteel.com");
+
+                         if (!string.IsNullOrWhiteSpace(emailTo))
+                         {
+                             foreach (var addr in emailTo.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                             {
+                                 mail.To.Add(addr.Trim());
+                             }
+                         }
+
+
+
+                         mail.CC.Add(" sidheshwar.vishwakarma@tatasteel.com");
+                         mail.Subject = $"Regarding Closed Complaint of M/s {vname} (Vendor Code {vcode})";
+                         mail.Body = body;
+                         mail.IsBodyHtml = true;
+
+                         using (var smtp = new SmtpClient("144.0.11.253", 25))
+                         {
+                             smtp.Timeout = 20000;
+                             smtp.Send(mail);
+                         }
+                     }
+
+
+
+
+
+                 }
+             }
+         }
+     }
+
+
+
+
+     Tracelog( start,  System.DateTime.Now.ToString(), "HelpDesk_Complaint_Close",  status);
+
+
+ }
+
+
+   public void Tracelog(string start, string end, string taskname, string status)
+  {
+
+      SqlConnection con3 = new SqlConnection("Data Source=10.0.168.30;Initial Catalog=CLMSDB;User ID=fs;Password=jusco@123");
+      con3.Open();
+      String s1 = "Insert into App_JUSCOTASKDETAILS (UPDATEDAT,UPDATEDBY,STARTTIME,ENDTIME,TASKNAME,STATUS) values('" + System.DateTime.Now + "','000001','" + start + "','" + end + "','" + taskname + "','" + status + "') ";
+      SqlCommand cmd = new SqlCommand(s1, con3);
+      cmd.ExecuteNonQuery();
+      con3.Close();
+
+  }
