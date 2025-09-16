@@ -1,24 +1,3 @@
-  using (var mail = new MailMessage())
-  {
-      mail.From = new MailAddress("automatic_mail@tatasteel.com");
+SELECT distinct top 5 m.ID,  m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.COMPLAINT_STATUS,  m.EMAIL_ID ,  m.CREATED_BY FROM  App_COMPLAINT_HELP_REGISTER AS m INNER JOIN  App_COMPLAINT_HELP_DETAILS  AS d ON  m.ID = d.MasterID WHERE       m.COMPLAINT_STATUS = 'S0002' GROUP BY  m.ID,  m.vendor_code, m.vendor_name, m.COMPLAINT_NO, m.COMPLAINT_STATUS, m.EMAIL_ID ,  m.CREATED_BY HAVING      DATEDIFF(DAY, MAX(d.UPDT_DATE), GETDATE()) > 3
 
-      if (!string.IsNullOrWhiteSpace(emailTo))
-          mail.To.Add(emailTo);
-
-      if (!string.IsNullOrWhiteSpace(extraEmails))
-      {
-          foreach (var addr in extraEmails.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-              mail.To.Add(addr.Trim());
-      }
-
-      mail.CC.Add("sidheshwar.vishwakarma@tatasteel.com");
-      mail.Subject = $"Regarding Closed Complaint of M/s {vname} (Vendor Code {vcode})";
-      mail.Body = body;
-      mail.IsBodyHtml = true;
-
-      using (var smtp = new SmtpClient("144.0.11.253", 25))
-      {
-          smtp.Timeout = 20000;
-          smtp.Send(mail); - error System.Net.Mail.SmtpException: 'Mailbox unavailable. The server response was: rejected because of not in approved list'
-      }
-  }
+in this i want my email_id thourh my another table that is App_Vendor_Reg as per vcode
