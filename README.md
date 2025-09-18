@@ -1,1 +1,3 @@
-from App_vendorwodetails where UPDATEDAT (last 7 days data)
+SELECT *
+FROM App_vendorwodetails
+WHERE UPDATEDAT >= CAST(GETDATE() AS date) - 7;
