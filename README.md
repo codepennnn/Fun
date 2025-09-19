@@ -1,30 +1,78 @@
-SELECT 
-    CONCAT(w.WO_NO, ' - ', CONVERT(varchar, w.TO_DATE, 103)) AS WorkOrderNo,
-    w.WO_NO AS WoNo
-FROM App_WorkOrder_Reg w
-WHERE w.V_CODE = '10482' 
-  AND w.STATUS = 'Approved'
-  AND w.WO_NO NOT IN (
-        SELECT c3.WO_NO 
-        FROM App_Vendor_form_C3_Dtl c3
-        WHERE c3.STATUS = 'Approved' 
-          AND c3.C3_CLOSER_DATE > GETDATE()
-          AND c3.V_CODE = w.V_CODE
-  )
+ if (PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0].RowState == DataRowState.Added)
+ {
+     string vc = Session["username"].ToString();
+     string LicNo = PageRecordDataSet.Tables["App_LabourLicenseSubmission"].Rows[0]["LicNo"].ToString();
 
-UNION
+     BL_LabourLicense blobj = new BL_LabourLicense();
 
-SELECT 
-    CONCAT(w.WO_NO, ' - ', CONVERT(varchar, w.TO_DATE, 103)) AS WorkOrderNo,
-    w.WO_NO AS WoNo
-FROM App_WorkOrder_Reg w
-WHERE w.V_CODE = '10482' 
-  AND w.STATUS = 'Approved'
-  AND w.WO_NO IN (
-        SELECT c3.WO_NO 
-        FROM App_Vendor_form_C3_Dtl c3
-        WHERE c3.Ll_NO LIKE 'NA_%' 
-          AND c3.STATUS = 'Approved'
-          AND c3.V_CODE = w.V_CODE
-  );
-  
+     DataSet ds_USed = blobj.GetusedWorkOrder(vc);
+
+     List<string> usedWoOrder = new List<string>();
+
+     foreach (DataRow row in ds_USed.Tables[0].Rows)
+     {
+         string licno = row["LicNo"].ToString();
+         string[] orders = row["WorkOrderNo"].ToString().Split(',');
+         foreach (string order in orders)
+         {
+             string trimmed = order.Trim();
+
+
+             if (licno != LicNo && !usedWoOrder.Contains(trimmed))
+             {
+                 usedWoOrder.Add(trimmed);
+             }
+         }
+     }
+
+
+
+
+     DataSet ds_Selected = blobj.GetSelectedWorkOrder(LicNo);
+     List<string> selectedWorkOrders = new List<string>();
+
+     foreach (DataRow row in ds_Selected.Tables[0].Rows)
+     {
+         string[] selected = row["WorkOrderNo"].ToString().Split(',');
+         foreach (string sel in selected)
+         {
+             string trimmed = sel.Trim();
+             if (!selectedWorkOrders.Contains(trimmed))
+                 selectedWorkOrders.Add(trimmed);
+         }
+     }
+
+
+
+
+
+
+     DataSet ds_All = blobj.GetAllWorkOrder(vc);
+
+
+     for (int i = ds_All.Tables[0].Rows.Count - 1; i >= 0; i--)
+     {
+         string wono = ds_All.Tables[0].Rows[i]["WoNo"].ToString().Trim();
+         if (usedWoOrder.Contains(wono) && !selectedWorkOrders.Contains(wono))
+         {
+             ds_All.Tables[0].Rows.RemoveAt(i);
+         }
+     }
+     ds_All.Tables[0].AcceptChanges();
+
+     CheckBoxList chklist = (CheckBoxList)Labourdetails.Rows[0].FindControl("WorkOrderNo");
+     chklist.Items.Clear();
+     chklist.DataSource = ds_All.Tables[0];
+     chklist.DataTextField = "WorkOrderNo";
+     chklist.DataValueField = "WoNo";
+     chklist.DataBind();
+
+     foreach (ListItem item in chklist.Items)
+     {
+         if (selectedWorkOrders.Contains(item.Value))
+         {
+             item.Selected = true;
+         }
+     }
+
+ }
