@@ -1,4 +1,4 @@
-Dear sir, we have checked the details in 90 server and in Grievance and Govt. Notice is showing  "Y" that means bill should be pass.
-Please check once at your side.
+We have checked the details in the 90 server under Grievance and Govt. Notice. The status is showing “Y”, which means the bill should be passed.
+Kindly check once from your side as well.
 
-Meaning of "N" , any complaint is open in Grievance and Govt. Notice that should be considered as non-complied
+Please note that “N” indicates that there is an open complaint in Grievance or Govt. Notice, which should be considered as non-complied
