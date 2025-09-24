@@ -1,48 +1,66 @@
-                              <div class="form-group col-md-12 mb-1">
-                                 <label class="m-0 mr-5 p-0 col-form-label-sm col-sm-2  font-weight-bold fs-6 justify-content-start">
-                                     Compliance Type: <span style="color:#FF0000;">*</span>
-                                 </label>
+<div class="form-group col-md-12 mb-1">
+    <label class="m-0 mr-5 p-0 col-form-label-sm col-sm-2 font-weight-bold fs-6 justify-content-start">
+        Compliance Type: <span style="color:#FF0000;">*</span>
+    </label>
 
-                                 <asp:CheckBox ID="Wage"     CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="Wage">Wage</label>
+    <asp:CheckBox ID="Wage"     CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="Wage">Wage</label>
 
-                                 <asp:CheckBox ID="PfEsi"    CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="PfEsi">PF &amp; ESI</label>
+    <asp:CheckBox ID="PfEsi"    CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="PfEsi">PF &amp; ESI</label>
 
-                                 <asp:CheckBox ID="Leave"    CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="Leave">Leave</label>
+    <asp:CheckBox ID="Leave"    CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="Leave">Leave</label>
 
-                                 <asp:CheckBox ID="Bonus"    CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="Bonus">Bonus</label>
+    <asp:CheckBox ID="Bonus"    CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="Bonus">Bonus</label>
 
-                                 <asp:CheckBox ID="LL"       CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="LL">Labour License</label>
+    <asp:CheckBox ID="LL"       CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="LL">Labour License</label>
 
-                                 <asp:CheckBox ID="Grievance" CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="Grievance">Grievance</label>
+    <asp:CheckBox ID="Grievance" CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="Grievance">Grievance</label>
 
-                                 <asp:CheckBox ID="Notice"   CssClass="mr-2 compliance-check" runat="server" />
-                                 <label class="form-check-label mr-3" for="Notice">Notice</label>
-                            
-                                  
-                                    <asp:CheckBox ID="All"   CssClass="mr-2 compliance-check" runat="server" />
-                                     <label class="form-check-label mr-3" for="All">All</label>
-                            
+    <asp:CheckBox ID="Notice"   CssClass="mr-2 compliance-check item-check" runat="server" />
+    <label class="form-check-label mr-3" for="Notice">Notice</label>
 
+    <!-- The “All” checkbox -->
+    <asp:CheckBox ID="All" CssClass="mr-2 compliance-check select-all" runat="server" />
+    <label class="form-check-label mr-3" for="All">All</label>
+</div>
 
-                              </div>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
 
-                                 <script type="text/javascript">
-       function validateCompliance() {
-           
-           var checks = document.querySelectorAll(".compliance-check input[type='checkbox']");
-           var atLeastOne = Array.from(checks).some(cb => cb.checked);
+        // Get the "All" checkbox
+        var allBox = document.querySelector('.select-all input[type="checkbox"]');
+        // Get every other checkbox
+        var itemBoxes = document.querySelectorAll('.item-check input[type="checkbox"]');
 
-           if (!atLeastOne) {
-               alert("Please select at least one Compliance Type.");
-               return false; 
-           }
-           return true; 
-       }
-   </script>
- 
+        // When "All" is clicked -> toggle all others
+        allBox.addEventListener('change', function () {
+            itemBoxes.forEach(function (cb) {
+                cb.checked = allBox.checked;
+            });
+        });
+
+        // When any single box is changed -> update "All"
+        itemBoxes.forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                // If every item is checked, check All; otherwise uncheck All
+                allBox.checked = Array.from(itemBoxes).every(function (c) { return c.checked; });
+            });
+        });
+    });
+
+    // Optional validation (ensure at least one is chosen)
+    function validateCompliance() {
+        var checks = document.querySelectorAll('.compliance-check input[type="checkbox"]');
+        var atLeastOne = Array.from(checks).some(function (cb) { return cb.checked; });
+        if (!atLeastOne) {
+            alert("Please select at least one Compliance Type.");
+            return false;
+        }
+        return true;
+    }
+</script>
