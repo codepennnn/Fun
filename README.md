@@ -3,19 +3,16 @@ if (PageRecordDataSet.Tables["App_WorkOrder_Exemption"]
 {
     List<string> fileList = new List<string>();
 
-    // Correct: use the control outside the grid
-    FileUpload fu = (FileUpload)div_ReturnAttachment.FindControl("ReturnAttachment");
-    // or simply: FileUpload fu = ReturnAttachment;   (since it’s on the page)
-
-    if (fu != null && fu.HasFiles)   // HasFiles for multiple uploads
+    // Directly use the page-level control
+    if (ReturnAttachment.HasFiles)       // AllowMultiple="true"
     {
-        foreach (HttpPostedFile file in fu.PostedFiles)
+        foreach (HttpPostedFile file in ReturnAttachment.PostedFiles)
         {
             string id = PageRecordDataSet.Tables["App_WorkOrder_Exemption"]
                         .Rows[0]["ID"].ToString();
             string safeName = id + "_" + Path.GetFileName(file.FileName);
 
-            // remove unwanted chars
+            // strip unwanted characters
             safeName = Regex.Replace(safeName, @"[,+*/?|><&=\#%:;@[^$?:'()!~}{`]", "");
 
             string savePath = Path.Combine(
