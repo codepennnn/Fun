@@ -1,53 +1,63 @@
-protected void btnDwnld_Click(object sender, EventArgs e)
+using System;
+using System.IO;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+public partial class Bonus : System.Web.UI.Page
 {
-    // Turn off paging so every currently visible row is included
-    Grid.AllowPaging = false;
-
-    // Re-bind ONLY if you need to refresh data before export.
-    // If you truly want the live, on-screen edits, DO NOT rebind.
-    // Grid.DataBind();
-
-    Response.Clear();
-    Response.Buffer = true;
-    Response.AddHeader("content-disposition", "attachment;filename=Bonus_Compliance_Details.xls");
-    Response.Charset = "";
-    Response.ContentType = "application/vnd.ms-excel";
-
-    // Make sure controls can render
-    System.IO.StringWriter sw = new System.IO.StringWriter();
-    HtmlTextWriter hw = new HtmlTextWriter(sw);
-
-    // Remove controls like TextBox and render their current text values
-    PrepareGridViewForExport(Grid);
-
-    Grid.RenderControl(hw);
-    Response.Output.Write(sw.ToString());
-    Response.Flush();
-    Response.End();
-}
-
-// Needed to allow rendering outside of a form
-public override void VerifyRenderingInServerForm(Control control)
-{
-    // Required override – leave empty
-}
-
-// Replace input controls with literal text so their current values are exported
-private void PrepareGridViewForExport(Control ctrl)
-{
-    for (int i = 0; i < ctrl.Controls.Count; i++)
+    protected void btnDwnld_Click(object sender, EventArgs e)
     {
-        Control current = ctrl.Controls[i];
-        if (current is TextBox)
+        // ✅ Make sure paging is off so all visible rows are exported
+        Grid.AllowPaging = false;
+
+        // ❌ DO NOT rebind here if you want to keep user edits
+        // Grid.DataBind();
+
+        // Prepare HTTP headers
+        Response.Clear();
+        Response.Buffer = true;
+        Response.AddHeader("content-disposition", "attachment;filename=Bonus_Compliance_Details.xls");
+        Response.Charset = "";
+        Response.ContentType = "application/vnd.ms-excel";
+
+        // Capture GridView HTML
+        using (StringWriter sw = new StringWriter())
         {
-            // Grab the live user-entered value
-            Literal lit = new Literal { Text = ((TextBox)current).Text };
-            ctrl.Controls.Remove(current);
-            ctrl.Controls.AddAt(i, lit);
+            HtmlTextWriter hw = new HtmlTextWriter(sw);
+
+            // Replace input controls (TextBox etc.) with their current values
+            PrepareGridViewForExport(Grid);
+
+            Grid.RenderControl(hw);
+            Response.Output.Write(sw.ToString());
+            Response.Flush();
+            Response.End();
         }
-        else if (current.HasControls())
+    }
+
+    // 🔑 This override prevents the “must be inside a form” error
+    public override void VerifyRenderingInServerForm(Control control)
+    {
+        // required but intentionally empty
+    }
+
+    // Recursively convert TextBoxes (and other editable controls) to plain text
+    private void PrepareGridViewForExport(Control parent)
+    {
+        for (int i = 0; i < parent.Controls.Count; i++)
         {
-            PrepareGridViewForExport(current);
+            Control c = parent.Controls[i];
+
+            if (c is TextBox tb)
+            {
+                parent.Controls.Remove(c);
+                parent.Controls.AddAt(i, new Literal { Text = HttpUtility.HtmlEncode(tb.Text) });
+            }
+            else if (c.HasControls())
+            {
+                PrepareGridViewForExport(c);
+            }
         }
     }
 }
