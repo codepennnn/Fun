@@ -1,197 +1,48 @@
-                             <asp:GridView ID="Grid" runat="server" Style="text-align: center; width: 3000px; height: 100px;" AutoGenerateColumns="False"
-   AllowPaging="false" CellPadding="0" GridLines="Both"  OnRowDataBound="Grid_RowDataBound"
-   ForeColor="#333333" ShowHeaderWhenEmpty="True" SortedAscendingCellStyle-BorderColor="Black" SortedAscendingCellStyle-BorderWidth="1px" SortedAscendingCellStyle-BorderStyle="Solid"
-   PageSize="100" PagerSettings-Visible="false" PagerStyle-HorizontalAlign="Center" RowStyle-Height="30px"
-   PagerStyle-Wrap="True" HeaderStyle-Font-Size="small" RowStyle-Font-Size="small" CssClass="freezeColumn"
-   HeaderStyle-HorizontalAlign="Center" RowStyle-ForeColor="Black" BorderColor="Black" BorderStyle="Solid" BorderWidth="1px">
-   <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+  from(  
+  
+  select    0.00 as EL_FINAL,
+  0.00 as CL_FINAL,
+  0.00 as FL_FINAL,
+  0.00 as Total_Leave, 
+  w1.WorkManName as Workman_Name,
+  w1.WorkManSl as workman_slno,
+  w1.WorkManCategory as Workman_Category, 
+  L.Location as Location,
+  w1.AadharNo,
+  VendorCode,
+  YearWage, 
+  WorkOrderNo as work_order,  
+  IsNull(sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0)), 0)   WorkOrder_WorkingDays,   
+  
+  iif(sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0))/20.0 <=15.0,
+  sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0))/20.0 , 15) as EL,   
 
+  iif(sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0)) / 35.00 <= 7, 
+  (sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0)) / 35.00), 7)  as cl, 
 
-   <Columns>
-       <asp:TemplateField HeaderText="Sl.No." SortExpression="Sl_No"
-           HeaderStyle-Width="50px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center">
-           <ItemTemplate><%# Container.DataItemIndex + 1 + "."%></ItemTemplate>
-       </asp:TemplateField>
-
+  iif(sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0)) / 60.00 <= 4, 
+  (sum(isnull(w1.NoOfDaysWorkedMP,0)+isnull(w1.NoOfDaysWorkedRate,0)) / 60.00), 4)  as FL,  
+  
+  (select distinct max(BasicRate+DARate) from App_WagesDetailsJharkhand where YearWage='2024' and VendorCode='17201' and 
+  AadharNo =w1.AadharNo and WorkManSl=w1.WorkManSl and WorkManCategory=w1.WorkManCategory and LocationNM =L.Location and 
+  TotPaymentDays !=0.00  and WorkOrderNo=w1.WorkOrderNo      )     as MAX_RATE,  
+  (select distinct max(MonthWage) from App_WagesDetailsJharkhand where YearWage='2024' and VendorCode='17201'
+  and AadharNo=w1.AadharNo and   WorkManSl =w1.WorkManSl and WorkManCategory=w1.WorkManCategory 
+  and LocationNM =L.Location and TotPaymentDays!= 0.00    and WorkOrderNo=w1.WorkOrderNo  )    as last_wage_month,
+  Convert (varchar(10),wr.TO_DATE,103) to_date    from App_WagesDetailsJharkhand w1  
+  left join App_LocationMaster L on L.LocationCode = w1.LocationCode   
+  left join App_WorkOrder_Reg Wr on Wr.WO_NO=w1.WorkOrderNo   where VendorCode = '17201' and YearWage = '2024'
+  and TotPaymentDays!= 0.00     group by w1.AadharNo, w1.VendorCode, w1.YearWage, 
+  w1.WorkOrderNo, w1.WorkManName, w1.WorkManSl, w1.WorkManCategory, l.Location ,wr.TO_DATE 
+  
   
 
-       <asp:TemplateField HeaderText="ID" Visible="false">
-           <ItemTemplate><asp:Label ID="lblID" runat="server" Text='<%# Eval("ID") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Year" HeaderStyle-Width="50px">
-           <ItemTemplate><asp:Label ID="lblYear" runat="server" Text='<%# Eval("Year") %>' /></ItemTemplate>
-       </asp:TemplateField>
-                                    
-       <asp:TemplateField HeaderText="Vendor Code" HeaderStyle-Width="50px">
-           <ItemTemplate><asp:Label ID="lblVcode" runat="server" Text='<%# Eval("Vcode") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Aadhar No.">
-           <ItemTemplate><asp:Label ID="lblAadharNo" runat="server" Text='<%# Eval("AadharNo") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="WorkMan Sl.No." HeaderStyle-Width="50px">
-           <ItemTemplate><asp:Label ID="lblWorkManSlno" runat="server" Text='<%# Eval("WorkManSlno") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Workorder No.">
-           <ItemTemplate><asp:Label ID="lblWorkorderNo" runat="server" Text='<%# Eval("WorkorderNo") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="WorkMan Category">
-           <ItemTemplate><asp:Label ID="lblWorkManCategory" runat="server" Text='<%# Eval("WorkManCategory") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="WorkMan Name">
-           <ItemTemplate><asp:Label ID="lblWorkManName" runat="server" Text='<%# Eval("WorkManName") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="No. of days worked">
-           <ItemTemplate><asp:Label ID="lblTotaldaysWorked" runat="server" Text='<%# Eval("TotaldaysWorked") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Total Wages (Basic + DA)"> 
-           <ItemTemplate><asp:Label ID="lblTotalWages" runat="server" Text='<%# Eval("TotalWages") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Puja Bonus of other quota many Bonus Paid during the accounting year">
-           <ItemTemplate><asp:Label ID="lblPuja_Bonus" runat="server" Text='<%# Eval("Puja_Bonus") %>' /></ItemTemplate>
-       </asp:TemplateField>
-                                      
-       <asp:TemplateField HeaderText="Interim Bonus or Bonus paid in advance">
-           <ItemTemplate><asp:Label ID="lblInterim_Bonus" runat="server" Text='<%# Eval("Interim_Bonus") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Deduction on a/c of financial if any caused by misconduct of the employee">
-           <ItemTemplate><asp:Label ID="lblDeduction_misconduct_emp" runat="server" Text='<%# Eval("Deduction_misconduct_emp") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Total sum of Deduction">
-           <ItemTemplate><asp:Label ID="lblTotal_deduction" runat="server" Text='<%# Eval("Total_deduction") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <asp:TemplateField HeaderText="Net Bonus Payable Amount">
-           <ItemTemplate><asp:Label ID="lblBonusPayableAmount" runat="server" Text='<%# Eval("BonusPayableAmount") %>' /></ItemTemplate>
-       </asp:TemplateField>
-
-       <%--<asp:TemplateField HeaderText="Net Bonus Paid in bank">
-           <ItemTemplate><asp:Label ID="lblBonus_Paid_Amount" runat="server" Text='<%# Eval("Bonus_Paid_Amount") %>' /></ItemTemplate>
-       </asp:TemplateField>--%>
-
-   <asp:TemplateField HeaderText="Net Bonus Paid in bank">
-    <ItemTemplate>
-        <asp:TextBox ID="Bonus_Paid_Amount" Text='<%# Eval("Bonus_Paid_Amount") %>' runat="server" OnChange="Calculation_UnpaidAmount()" ></asp:TextBox>
-    </ItemTemplate>
-</asp:TemplateField>
-
-  <%--     <asp:TemplateField HeaderText="Bonus UnPaid Amount">
-           <ItemTemplate><asp:Label ID="lblBonus_UnPaid_Amount" runat="server" Text='<%# Eval("Bonus_UnPaid_Amount") %>' /></ItemTemplate>
-       </asp:TemplateField>--%>
-
-        <asp:TemplateField HeaderText="Bonus UnPaid Amount">
-             <ItemTemplate>
-                 <asp:TextBox ID="Bonus_UnPaid_Amount" Text='<%# Eval("Bonus_UnPaid_Amount") %>' runat="server" OnChange="Calculation_UnpaidAmount()" ></asp:TextBox>
-             </ItemTemplate>
-         </asp:TemplateField>
-
-      <%-- <asp:TemplateField HeaderText="Bank Statement Slno">
-           <ItemTemplate><asp:Label ID="lblBankStatementSlno" runat="server" Text='<%# Eval("BankStatementSlno") %>' /></ItemTemplate>
-       </asp:TemplateField>--%>
-
-      <asp:TemplateField HeaderText="Bank Statement Sl.No.">
-           <ItemTemplate>
-               <asp:TextBox ID="BankStatementSlno" Text='<%# Eval("BankStatementSlno") %>' runat="server"></asp:TextBox>
-           </ItemTemplate>
-       </asp:TemplateField>
-
-
-
-  </Columns>
-
-
-  <EditRowStyle BackColor="#999999" />
-  <FooterStyle BackColor="#5D7B9D" ForeColor="White" Font-Bold="True" />
-  <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
-  <PagerSettings Mode="Numeric" />
-  <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" Font-Bold="True" CssClass="pager1" />
-  <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" />
-  <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
-  <SelectedRowStyle BackColor="#E2DED6" Font-Bold="False" ForeColor="#333333" />
-  <SortedAscendingCellStyle BackColor="#E9E7E2" />
-  <SortedAscendingHeaderStyle BackColor="#506C8C" />
-  <SortedDescendingCellStyle BackColor="#FFFDF8" />
-  <SortedDescendingHeaderStyle BackColor="#6F8DAE" />
-
-
-</asp:GridView>
 
 
 
 
 
-
-
-
-
-          
-                             
-                      </div>
-              <%--  31-07-2025--%>
-                  <div class="row m-0 mt-1" style="float:right">
-
-
-                 <asp:Button ID="btnDwnld" runat="server" Text="Download" OnClick="btnDwnld_Click" CssClass="btn btn-sm btn-info" Style="width: 100px;border-radius: 31px;background-color: darkgreen;height: 27px;padding: 0px;"/>&nbsp
-             </div>
-
-                 protected void btnDwnld_Click(object sender, EventArgs e)
-    {
-
-        DataSet ds = new DataSet();
-        ds.Merge(PageRecordDataSet.Tables["App_Bonus_Comp_Details"]);
-        if (ds.Tables[0].Rows.Count > 0)
-        {
-            using (XLWorkbook wb = new XLWorkbook())
-            {
-                var ws = wb.Worksheets.Add("BonusData");
-                DataTable dt = ds.Tables[0];
-                for (int i = 2; i < dt.Columns.Count; i++)
-                {
-                    ws.Cell(1, i - 1).Value = dt.Columns[i].ColumnName;
-                }
-
-                for (int row = 0; row < dt.Rows.Count; row++)
-                {
-
-                    for (int col = 2; col < dt.Columns.Count; col++)
-                    {
-                        ws.Cell(row + 2, col - 1).Value = dt.Rows[row][col].ToString();
-                    }
-
-
-
-                }
-                for (int col = 2; col <= dt.Columns.Count; col++)
-                {
-                    ws.Column(col - 1).AdjustToContents();
-                }
-
-
-
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    wb.SaveAs(ms);
-                    Response.Clear();
-                    Response.Buffer = true;
-                    Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-                    Response.AddHeader("Content-Disposition", "attachment; filename=Bonus_Compliance_Details.xlsx");
-                    Response.BinaryWrite(ms.ToArray());
-                    Response.Flush();
-                    Response.End();
-                }
-            }
-
-        }
-    }
-
-my code wokring very well for dwnlod excel but i want to dwnlod it thorugh grid ui screen not pagerecord dataset
+  ) x group by 
+  x.AadharNo,x.last_wage_month,x.Location,x.MAX_RATE,x.to_date,x.Total_Leave,x.VendorCode,x.work_order,
+  x.Workman_Category,x.Workman_Name,x.workman_slno,x.WorkOrder_WorkingDays,x.YearWage,x.CL_FINAL,x.EL_FINAL,x.FL_FINAL,
+  x.EL,x.cl,X.FL   order by x.Workman_Name  
