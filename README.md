@@ -1,1 +1,11 @@
-https://login.microsoftonline.com/common/reprocess?ctx=rQQIARAAjVO_b-NkGE6aNtdWwOUOdALE0KFCCOHE8a_PrrjBjpM4bmynTZzEkVDk2I7t1Pbn2E4c5x_gxMJJLOgYkG6CTgWWU6cTY6dbYLjpJAakYwAxdbz0ECMS0qtX7_P-eN7lefZv0WWyjJbRjwtYGT06JABFEgQ5QXDMoBCCmaAIjVsUUjUZfDPCAGXo0d390pfvP_ml-fUHtW8Ov_-i9OnexXn-QydJwvioUvFxiiwbHlyYZd81IhjDaVLx9MB0A3uJPcnnn-Xzj7Z2rABRu-dbMYXTDL15CQgSZRia3hzLTdnXZvJMwlrJiNfWkouioxnntAcNR77p-afOyJeqI55zZb9_Js84Xx60UGmtJZqvonJts-9LaXvQWkk9O9nweVpvw8Oz5IiXsudbtxV2kTjYTYKRu7b-3tqbwsgfhzBOHhV-3bLCU7fjcJrODD00Wc_onptx01WaiX4wVQhWpLTMFigFExBgZsOVnbjSpMOHQER47LjOsE0cMpaInSb4yCDYYyiuPDMk1Aae8CuL58xBtEiPa7WF0G6lAsMJgG3HvJxlSIMR9ZrPY0Q94vv9wSxSmxoUCcNeqoGvucv-WaiOBUx3xZaLd2WH0qZDkJ7hZq9Ge0J3VR-mnNmM1gtu7qpG3a0HcQTgSRPPrKih12mSIfQBVpMTbkzH2Cxw8JUyViTFBlRdG6tc2NajRt2R7JXd7XEqDk3KVHmxJcJ6PJ8Hp3SPUPmzKd1NnYZqeKvmHFfmaRAPVGmNgCnWidWsk1WhnHEsajNyg4_bvLjonwDm5Lzw3r8iSdO0DKdT17DKBvQrS-zHQnFT-DC4LByiqM7QFskgDIEBZKMME5ngACCGjjIWIKsTDCWvCgCGVuCaB2EEp65nHfwndUV5jQToW2XW855t519u39vdLe28mzvIffQOWjja3d0v5W7Q9Xb-8c5G3k_hZ_d-_-Fn9uKry5_sczZ3tVMJcSBEJoWGFWLV1Stqi4Z9ti9m7eWEYMFQBVSb7wgpgS_p--Co-rCYf1gsXhX3WvxYrvfoMfpXMf_gVu5y738a5fkbb-_vL9yxBw3ds-K7_xjm6Zu567d--_yPx999--BP4eXtT4RqN20xmSwpAUCNE1KVjyll5A6OGw1i1BvGdsNpnSrLk7O5cf-ilHuxiTu56zulVw2&sessionid=00a98e59-9427-574d-b377-ca09e751b205
+
+ select sum(Max_Wage_Rate) as total_gross_wage,
+ sum(Net_Bonus_Payable) as TotalBonusPayableAmount 
+ ,
+ 
+ (select sum(Max_Wage_Rate) from App_Bonus_Generation_Details where Vcode='17476' and Year='2024-2025' and cast(Total_No_of_days_worked as int)>=30  ) as total_Earned,
+
+ ( select count( distinct AdharNo ) from App_Bonus_Generation_Details where Total_No_of_days_worked >=30 
+ and Vcode='17476' and Year='2024-2025' )  as eg_headcount,( select count( distinct AdharNo )
+ from App_Bonus_Generation_Details where Total_No_of_days_worked <30 and Vcode='17476' and Year='2024-2025' )  as not_eg_headcount    from App_Bonus_Generation_Details where Vcode='17476' and Year='2024-2025'  
+
