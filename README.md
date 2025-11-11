@@ -1,89 +1,73 @@
-SELECT *
-FROM
-(
-    /* --- FIRST QUERY (YOUR ORIGINAL) --- */
-    SELECT    
-        0.00 AS EL_FINAL,
-        0.00 AS CL_FINAL,
-        0.00 AS FL_FINAL,
-        0.00 AS Total_Leave, 
-        w1.WorkManName AS Workman_Name,
-        w1.WorkManSl AS workman_slno,
-        w1.WorkManCategory AS Workman_Category, 
-        L.Location AS Location,
-        w1.AadharNo,
-        VendorCode,
-        YearWage, 
-        WorkOrderNo AS work_order,  
-        ISNULL(SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0)), 0) AS WorkOrder_WorkingDays,   
+ DECLARE 
+    @VendorCode VARCHAR(10) = '15503',
+    @LeaveYear INT = 2024;
+ 
 
-        IIF(SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0))/20.0 <=15.0,
-            SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0))/20.0 , 15) AS EL,   
+with ActiveWorkOrders as (
+    select V_CODE, START_DATE, END_DATE, WO_NO from App_vendorwodetails
+    where V_CODE = @VendorCode
+      and ((YEAR(START_DATE) = @LeaveYear OR YEAR(END_DATE) = @LeaveYear) 
+      OR (START_DATE <= DATEFROMPARTS(@LeaveYear, 12, 31) and END_DATE >= DATEFROMPARTS(@LeaveYear, 1, 1)) ) 
+    
+    and WO_NO not in 
+      (select WO_NO from APP_RECOGNIZED_WO where WO_NO is not null and WO_NO <> '')
 
-        IIF(SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0)) / 35.00 <= 7, 
-            (SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0)) / 35.00), 7)  AS CL, 
+     ),
 
-        IIF(SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0)) / 60.00 <= 4, 
-            (SUM(ISNULL(w1.NoOfDaysWorkedMP,0)+ISNULL(w1.NoOfDaysWorkedRate,0)) / 60.00), 4)  AS FL,  
 
-        (SELECT DISTINCT MAX(BasicRate+DARate) 
-         FROM App_WagesDetailsJharkhand 
-         WHERE YearWage='2024' AND VendorCode='17201'
-           AND AadharNo=w1.AadharNo AND WorkManSl=w1.WorkManSl 
-           AND WorkManCategory=w1.WorkManCategory AND LocationNM =L.Location 
-           AND TotPaymentDays !=0.00  AND WorkOrderNo=w1.WorkOrderNo) AS MAX_RATE,  
+ActiveMonths as (
+    select distinct 
+        MONTH(DATEADD(MONTH, n.number, DATEFROMPARTS(YEAR(a.START_DATE), MONTH(a.START_DATE), 1))) AS MonthWage,
+        YEAR(DATEADD(MONTH, n.number, DATEFROMPARTS(YEAR(a.START_DATE), MONTH(a.START_DATE), 1))) AS YearWage,
+        a.V_CODE,
+        a.WO_NO
+    from ActiveWorkOrders a
+    join master..spt_values n  
+        ON n.type = 'P'  
+       and DATEADD(MONTH, n.number, a.START_DATE) <= a.END_DATE
+    where 
+        YEAR(DATEADD(MONTH, n.number, DATEFROMPARTS(YEAR(a.START_DATE), MONTH(a.START_DATE), 1))) = @LeaveYear
+),
 
-        (SELECT DISTINCT MAX(MonthWage) 
-         FROM App_WagesDetailsJharkhand 
-         WHERE YearWage='2024' AND VendorCode='17201'
-           AND AadharNo=w1.AadharNo AND WorkManSl=w1.WorkManSl 
-           AND WorkManCategory=w1.WorkManCategory AND LocationNM =L.Location 
-           AND TotPaymentDays!= 0.00  AND WorkOrderNo=w1.WorkOrderNo ) AS last_wage_month,
 
-        CONVERT(VARCHAR(10),wr.TO_DATE,103) AS to_date
 
-    FROM App_WagesDetailsJharkhand w1  
-    LEFT JOIN App_LocationMaster L ON L.LocationCode = w1.LocationCode   
-    LEFT JOIN App_WorkOrder_Reg Wr ON Wr.WO_NO=w1.WorkOrderNo   
+FilteredMonths as (
+    select am.* from ActiveMonths am where NOT EXISTS 
+   
+   (select 1 from App_WO_Nil n where n.WO_NO = am.WO_NO and n.NO_WORK = 'Temporary'
+          and n.TEMPORARY_YEAR = am.YearWage
+          and n.TEMPORARY_MONTH = am.MonthWage and n.STATUS = 'Approved' )
 
-    WHERE VendorCode = '17201' AND YearWage = '2024' AND TotPaymentDays != 0.00     
 
-    GROUP BY w1.AadharNo, w1.VendorCode, w1.YearWage, 
-             w1.WorkOrderNo, w1.WorkManName, w1.WorkManSl, w1.WorkManCategory, 
-             L.Location, wr.TO_DATE  
+          and NOT EXISTS (
+            SELECT 1 
+            FROM App_WO_Nil n
+            WHERE n.WO_NO = am.WO_NO
+              and n.V_CODE = am.V_CODE
+              and n.NO_WORK = 'Permanent'
+              and n.STATUS = 'Approved'
+              and CONVERT(INT, n.TEMPORARY_YEAR + FORMAT(CONVERT(INT, n.CLOSER_DATE), '00'))
+                  <= (am.YearWage * 100 + am.MonthWage)
+        )
 
-    UNION ALL
+)
 
-    /* --- SECOND QUERY (WAGE SUPPLEMENT DATA) --- */
-    SELECT
-        0.00 AS EL_FINAL,
-        0.00 AS CL_FINAL,
-        0.00 AS FL_FINAL,
-        0.00 AS Total_Leave,
-        ws.WorkManName,
-        ws.WorkManSl,
-        ws.WorkManCategory,
-        L.Location,
-        ws.AadharNo,
-        ws.VendorCode,
-        ws.YearWage,
-        ws.WorkOrderNo AS work_order,
-        ws.Days AS WorkOrder_WorkingDays,   -- Change to correct column from wage_supplement
-        0 AS EL,
-        0 AS CL,
-        0 AS FL,
-        ws.SupplementRate AS MAX_RATE,      -- Change if needed
-        ws.SupplementMonth AS last_wage_month,
-        CONVERT(VARCHAR(10),ws.To_Date,103) AS to_date
 
-    FROM wage_supplement ws
-    LEFT JOIN App_LocationMaster L ON L.LocationCode = ws.LocationCode
-    WHERE ws.VendorCode='17201' AND ws.YearWage='2024'
-)x
+select f.YearWage,f.MonthWage,f.WO_NO as WorkOrderNo,
+    DATENAME(MONTH, DATEFROMPARTS(f.YearWage, f.MonthWage, 1)) as MonthName,
+    case when
+    EXISTS (select 1 from App_Online_Wages_Details d inner join App_Online_Wages w 
+                ON w.V_CODE = d.VendorCode and w.MonthWage = d.MonthWage and w.YearWage = d.YearWage
+                and w.STATUS = 'Request Closed'
+           
+           where d.VendorCode = f.V_CODE and d.YearWage = f.YearWage and d.MonthWage = f.MonthWage 
+            and d.WorkOrderNo = f.WO_NO
+        ) THEN 'Y' ELSE 'N' END as ComplianceStatus 
+        from FilteredMonths f
+order by  f.WO_NO , f.MonthWage
 
-GROUP BY 
-x.AadharNo,x.last_wage_month,x.Location,x.MAX_RATE,x.to_date,x.Total_Leave,
-x.VendorCode,x.work_order,x.Workman_Category,x.Workman_Name,x.workman_slno,
-x.WorkOrder_WorkingDays,x.YearWage,x.CL_FINAL,x.EL_FINAL,x.FL_FINAL,x.EL,x.CL,x.FL
 
-ORDER BY x.Workman_Name
+
+in this i want to also check y n in supplement wage that is similar to wage so just check in this table exist data like you do already with wage
+App_Online_Wages_Details_Supplement
+App_Online_WagesSupplement
