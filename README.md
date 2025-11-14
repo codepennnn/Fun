@@ -1,11 +1,29 @@
+select * from App_COMPLAINT_HELP_REGISTER 
 
- select sum(Max_Wage_Rate) as total_gross_wage,
- sum(Net_Bonus_Payable) as TotalBonusPayableAmount 
- ,
- 
- (select sum(Max_Wage_Rate) from App_Bonus_Generation_Details where Vcode='17476' and Year='2024-2025' and cast(Total_No_of_days_worked as int)>=30  ) as total_Earned,
+ID
+COMPLAINT_NO
+COMPLAINT_DATE
+VENDOR_CODE
+PROC_CAT_CODE
+COMPLAINT_CAT
+VENDOR_OPER_LOC
+WORK_ORDER_NO
+WORK_ORDER_DATE
+PROBLEM_STATMT
+COMPLNT_ATTACH_1
+COMPLNT_ATTACH_2
+COMPLNT_ATTACH_3
+VENDOR_NAME
+PROC_CAT_DESC
+COMPAINT_CAT_DESC
+USER_ID
+COMPLAINT_STATUS
+STATUS_DATE
+NEXT_USER_ID
+CONTACT_NO
+EMAIL_ID
+CREATED_BY
+CREATED_ON
+REFER_CC_USER
 
- ( select count( distinct AdharNo ) from App_Bonus_Generation_Details where Total_No_of_days_worked >=30 
- and Vcode='17476' and Year='2024-2025' )  as eg_headcount,( select count( distinct AdharNo )
- from App_Bonus_Generation_Details where Total_No_of_days_worked <30 and Vcode='17476' and Year='2024-2025' )  as not_eg_headcount    from App_Bonus_Generation_Details where Vcode='17476' and Year='2024-2025'  
-
+i wnat the data - previous 3 months only on saturday and sunday complaint logged
