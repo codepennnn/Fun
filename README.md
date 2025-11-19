@@ -1,99 +1,33 @@
- protected void WorkOrder_Exemption_Records_SelectedIndexChanged(object sender, EventArgs e)
- {
+    <asp:GridView ID="Remarks_grid" runat="server" AutoGenerateColumns="false"
+        AllowPaging="false" CellPadding="0" GridLines="Both" Width="100%"
+        ForeColor="#333333" ShowHeaderWhenEmpty="False" OnRowDataBound="Remarks_grid_RowDataBound"
+        PageSize="10" PagerSettings-Visible="false" PagerStyle-HorizontalAlign="Center"
+        PagerStyle-Wrap="True" HeaderStyle-Font-Size="Smaller" RowStyle-Font-Size="Small" CssClass="m-auto border border-info"
+        HeaderStyle-HorizontalAlign="Center" RowStyle-ForeColor="Black" BorderColor="Black" BorderStyle="Solid" BorderWidth="1px">
+        <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+        <Columns>
+            <asp:TemplateField Visible="False">
+                <ItemTemplate>
+                    <asp:Label ID="ID" runat="server"></asp:Label>
 
+                </ItemTemplate>
+            </asp:TemplateField>
+            <asp:BoundField DataField="Remarks" HeaderText="Remarks" ItemStyle-Width="30" />
+            <asp:BoundField DataField="Attachment" HeaderText="Attachment" ItemStyle-Width="30" />
 
-     GetRecord(WorkOrder_Exemption_Records.SelectedDataKey.Value.ToString());
-     WorkOrder_Exemption_Record.BindData();
-     Action_Record.DataBind();
+        </Columns>
+           <EditRowStyle BackColor="#ffffff" />
+         <FooterStyle BackColor="#5D7B9D" ForeColor="White" Font-Bold="True" />
+         <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
+         <PagerSettings Mode="Numeric" />
+         <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" Font-Bold="True"  CssClass="pager1" />
+         <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" />
+         <RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+         <SelectedRowStyle BackColor="#E2DED6" Font-Bold="False" ForeColor="#333333" />
+         <SortedAscendingCellStyle BackColor="#E9E7E2" />
+         <SortedAscendingHeaderStyle BackColor="#506C8C" />
+         <SortedDescendingCellStyle BackColor="#FFFDF8" />
+         <SortedDescendingHeaderStyle BackColor="#6F8DAE" />
+    </asp:GridView>
 
-
-
-     TextBox txtWO = (TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo");   // System.ArgumentOutOfRangeException
-  HResult=0x80131502
-  Message=Index was out of range. Must be non-negative and less than the size of the collection.
-Parameter name: index
-
-
-
-     CheckBoxList chkWO = (CheckBoxList)Action_Record.Rows[0].FindControl("WorkOrderNo");
-
-     chkWO.Items.Clear();
-
-     if (!string.IsNullOrEmpty(txtWO.Text))
-     {
-         chkWO.Items.Add(new ListItem(txtWO.Text, txtWO.Text));
-         chkWO.Items[0].Selected = true;
-     }
-
-     btnSave.Visible = false;
-
- 
-
-     BL_WorkOrder_Exemption_Approval blobj = new BL_WorkOrder_Exemption_Approval();
-     DataSet ds = new DataSet();
-     string ID = PageRecordDataSet.Tables["App_WorkOrder_Exemption"].Rows[0]["ID"].ToString();
-     ds = blobj.BindRemarks(ID);
-     Remarks_grid.DataSource = ds.Tables[0];
-     Remarks_grid.DataBind();
-
-
-  
-
-
-     WorkOrder_Exemption_Record.Visible = true;
-     Action_Record.Visible = true;
-     ((HtmlGenericControl)Action_Record.Rows[0].FindControl("div_exp_cc")).Visible = false;
-     ((HtmlGenericControl)Action_Record.Rows[0].FindControl("div_newRemarks")).Visible = false;
-
-     if (PageRecordDataSet.Tables["App_WorkOrder_Exemption"].Rows[0]["Status"].ToString() == "Approved")
-     {
-         //WorkOrder_Exemption_Record.Enabled = false;
-         //Action_Record.Visible=false;
-
-         //j
-         WorkOrder_Exemption_Record.DataBind();
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo")).Enabled = false;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Exemption_Vendor")).Enabled = false;
-         ((BulletedList)WorkOrder_Exemption_Record.Rows[0].FindControl("Bull_Attach")).Enabled = false;
-         btnSave.Visible = false;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Remarks")).Enabled = false;
-         Action_Record.Visible = false;
-     }
-     else if (PageRecordDataSet.Tables["App_WorkOrder_Exemption"].Rows[0]["Status"].ToString() == "Pending With CC")
-     {
-
-         //WorkOrder_Exemption_Record.Enabled = false;
-         //Action_Record.Enabled = true;
-         //btnSave.Visible = true;
-
-         //j
-         WorkOrder_Exemption_Record.DataBind();
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo")).Enabled = false;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Exemption_Vendor")).Enabled = false;
-         ((BulletedList)WorkOrder_Exemption_Record.Rows[0].FindControl("Bull_Attach")).Enabled = false;
-         btnSave.Visible = true;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Remarks")).Enabled = false;
-         Action_Record.Enabled = true;
-
-
-     }
-     else if (PageRecordDataSet.Tables["App_WorkOrder_Exemption"].Rows[0]["Status"].ToString() == "Return")
-     {
-         //WorkOrder_Exemption_Record.Enabled = false;
-         //Action_Record.Visible = false;
-
-         //j
-         WorkOrder_Exemption_Record.DataBind();
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo")).Enabled = false;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Exemption_Vendor")).Enabled = false;
-         ((BulletedList)WorkOrder_Exemption_Record.Rows[0].FindControl("Bull_Attach")).Enabled = false;
-         btnSave.Visible = false;
-         ((TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("Remarks")).Enabled = false;
-         Action_Record.Visible = false;
-
-     }
-     else
-     {
-
-     }
- }
+    make this tabluar format style
