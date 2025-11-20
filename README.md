@@ -1,27 +1,29 @@
-protected void WorkOrder_Exemption_Record_DataBound(object sender, EventArgs e)
+protected void WorkOrder_Exemption_Record_RowDataBound(object sender, GridViewRowEventArgs e)
 {
-    TextBox txtWO = (TextBox)WorkOrder_Exemption_Record.FindControl("WorkOrderNo");
-
-    if (txtWO != null)
-        ViewState["WO_LIST"] = txtWO.Text;
-}
-
-protected void Action_Record_DataBound(object sender, EventArgs e)
-{
-    // Get CheckBoxList
-    CheckBoxList chkWO = (CheckBoxList)Action_Record.FindControl("cc_wo");
-    if (chkWO == null) return;
-
-    chkWO.Items.Clear();
-
-    if (ViewState["WO_LIST"] != null)
+    if (e.Row.RowType == DataControlRowType.DataRow)
     {
-        string[] array = ViewState["WO_LIST"].ToString()
-                          .Split(new char[] { ',', '|'}, StringSplitOptions.RemoveEmptyEntries);
+        // 1. Get WorkOrder textbox
+        TextBox txtWO = (TextBox)e.Row.FindControl("WorkOrderNo");
 
-        foreach (string wo in array)
+        // 2. Get CheckBoxList in second FormContainer
+        CheckBoxList chkWO = (CheckBoxList)Action_Record.FindControl("cc_wo");
+
+        if (chkWO != null)
+            chkWO.Items.Clear();
+
+        if (txtWO != null && !string.IsNullOrWhiteSpace(txtWO.Text))
         {
-            chkWO.Items.Add(new ListItem(wo.Trim(), wo.Trim()));
+            string[] workorders = txtWO.Text.Split(new char[] { ',', '|'},
+                                                   StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string wo in workorders)
+            {
+                chkWO.Items.Add(new ListItem(wo.Trim(), wo.Trim()));
+            }
+
+            // Optional preselect all
+            foreach (ListItem item in chkWO.Items)
+                item.Selected = true;
         }
     }
 }
