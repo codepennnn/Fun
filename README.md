@@ -1,30 +1,27 @@
-protected void WorkOrder_Exemption_Record_RowDataBound(object sender, EventArgs e)
+protected void Action_Record_RowDataBound(object sender, EventArgs e)
 {
-    if (WorkOrder_Exemption_Record.Rows.Count > 0)
+    // 1. Get CONTROL from FIRST FormContainer (WorkOrder textbox)
+    TextBox txtWO = (TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo");
+
+    // 2. Get CONTROL from SECOND FormContainer (CheckBoxList)
+    CheckBoxList chkWO = (CheckBoxList)Action_Record.Rows[0].FindControl("cc_wo");
+
+    if (txtWO == null || chkWO == null)
+        return;
+
+    chkWO.Items.Clear();
+
+    if (!string.IsNullOrWhiteSpace(txtWO.Text))
     {
-        // 1. Get textbox from FIRST FormCointainer
-        TextBox txtWO = (TextBox)WorkOrder_Exemption_Record.Rows[0].FindControl("WorkOrderNo");
+        string[] arr = txtWO.Text.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
 
-        // 2. Get CheckBoxList from SECOND FormCointainer
-        CheckBoxList chkWO = (CheckBoxList)Action_Record.Rows[0].FindControl("cc_wo");
-
-        if (chkWO != null)
-            chkWO.Items.Clear();
-
-        if (txtWO != null && !string.IsNullOrWhiteSpace(txtWO.Text))
+        foreach (string item in arr)
         {
-            string[] workorders = txtWO.Text.Split(new char[] { ',', '|' },
-                                                   StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string wo in workorders)
-            {
-                chkWO.Items.Add(new ListItem(wo.Trim(), wo.Trim()));
-            }
-
-            foreach (ListItem item in chkWO.Items)
-                item.Selected = true;
+            chkWO.Items.Add(new ListItem(item.Trim(), item.Trim()));
         }
 
-        // Your existing attachment code…
+        // preselect all
+        foreach (ListItem li in chkWO.Items)
+            li.Selected = true;
     }
 }
