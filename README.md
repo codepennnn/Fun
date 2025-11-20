@@ -1,33 +1,27 @@
-protected void WorkOrder_Exemption_Records_SelectedIndexChanged(object sender, EventArgs e)
+protected void WorkOrder_Exemption_Record_DataBound(object sender, EventArgs e)
 {
-    GetRecord(WorkOrder_Exemption_Records.SelectedDataKey.Value.ToString());
-
-    WorkOrder_Exemption_Record.BindData();
-    Action_Record.BindData();
-
-    // 1. Get WorkOrder No and store
     TextBox txtWO = (TextBox)WorkOrder_Exemption_Record.FindControl("WorkOrderNo");
+
     if (txtWO != null)
-        hdnWorkOrder.Value = txtWO.Text;
+        ViewState["WO_LIST"] = txtWO.Text;
+}
 
-    // 2. Fill dropdown
+protected void Action_Record_DataBound(object sender, EventArgs e)
+{
+    // Get CheckBoxList
     CheckBoxList chkWO = (CheckBoxList)Action_Record.FindControl("cc_wo");
+    if (chkWO == null) return;
 
-    if (chkWO != null)
+    chkWO.Items.Clear();
+
+    if (ViewState["WO_LIST"] != null)
     {
-        chkWO.Items.Clear();
+        string[] array = ViewState["WO_LIST"].ToString()
+                          .Split(new char[] { ',', '|'}, StringSplitOptions.RemoveEmptyEntries);
 
-        string woText = hdnWorkOrder.Value;
-
-        if (!string.IsNullOrWhiteSpace(woText))
+        foreach (string wo in array)
         {
-            string[] arr = woText.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string wo in arr)
-            {
-                chkWO.Items.Add(new ListItem(wo.Trim(), wo.Trim()));
-            }
+            chkWO.Items.Add(new ListItem(wo.Trim(), wo.Trim()));
         }
     }
 }
-<asp:HiddenField ID="hdnWorkOrder" runat="server" />
