@@ -5,21 +5,20 @@ if (remarksTable.Rows.Count == 0)
 {
     DataRow newRow = remarksTable.NewRow();
 
-    // Tell dataset to let SQL generate NEWID()
-    newRow["ID"] = DBNull.Value;  
+    // 🔥 MUST BE FIRST — OR DataSet throws "column does not allow nulls"
+    newRow["ID"] = Guid.NewGuid();    
 
-    // You MUST set MASTER_ID (GUID)
+    // now the rest
     newRow["MASTER_ID"] = masterID;
-
     newRow["Remarks"] = NewRemarks.Text;
     newRow["CreatedOn"] = DateTime.Now;
     newRow["CreatedBy"] = Session["UserName"].ToString();
 
-    remarksTable.Rows.Add(newRow);
+    // only now add the row
+    remarksTable.Rows.Add(newRow);  
 }
 else
 {
-    // Update existing remarks row
     remarksTable.Rows[0]["MASTER_ID"] = masterID;
     remarksTable.Rows[0]["Remarks"] = NewRemarks.Text;
     remarksTable.Rows[0]["CreatedOn"] = DateTime.Now;
