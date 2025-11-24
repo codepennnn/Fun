@@ -1,7 +1,29 @@
-  SELECT TOP 1 ref_no = STUFF((SELECT DISTINCT ', ' + ref_no FROM App_Vendor_Grievance AS b WHERE b.STATUS='OPEN'
-  AND b.ClosedOn IS NULL AND b.V_CODE='10482' FOR XML PATH('')),1,2,''),
-  CreatedOn = (SELECT TOP 1 FORMAT(b.CreatedOn ,'dd-MM-yyyy') as CreatedOn  FROM App_Vendor_Grievance b WHERE b.STATUS='OPEN' 
-  AND b.ClosedOn IS NULL AND b.V_CODE='10482' ORDER BY b.CreatedOn DESC) FROM App_Vendor_Grievance AS a
+SELECT 
+    g.ID,
+    g.REF_NO,
+    g.CreatedOn,
+    g.TARGET_DT,
+    g.STATUS,
 
+    -- Latest revised_date from details table
+    d.revised_date,
+    d.CreatedOn AS DetailCreatedOn
 
-  i want - CreatedOn , REF_NO TARGET_DT , STATUS and revised_date from another tbl of latest createdon
+FROM App_Vendor_Grievance g
+
+LEFT JOIN (
+    SELECT d1.*
+    FROM App_Vendor_Grievance_Details d1
+    INNER JOIN (
+        SELECT MASTER_ID, MAX(CreatedOn) AS LatestCreatedOn
+        FROM App_Vendor_Grievance_Details
+        GROUP BY MASTER_ID
+    ) d2
+        ON d1.MASTER_ID = d2.MASTER_ID
+       AND d1.CreatedOn = d2.LatestCreatedOn
+) d
+    ON d.MASTER_ID = g.ID
+
+WHERE g.V_CODE = '10482'
+  AND g.STATUS = 'OPEN'
+  AND g.ClosedOn IS NULL;
