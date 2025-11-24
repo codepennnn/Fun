@@ -1,19 +1,7 @@
-SELECT 
-  g.ID,
-  g.CreatedOn        AS MasterCreatedOn,
-  g.REF_NO,
-  g.TARGET_DT,
-  g.STATUS,
-  CASE 
-    WHEN LOWER(g.STATUS) = 'open' THEN 'Y'
-    ELSE 'N'
-  END AS Compliance,
-  d.LatestCreatedOn
-FROM App_Vendor_Grievance g
-LEFT JOIN (
-  SELECT MASTER_ID, MAX(CreatedOn) AS LatestCreatedOn
-  FROM App_Vendor_Grievance_Details
-  GROUP BY MASTER_ID
-) d
-  ON d.MASTER_ID = g.ID
-WHERE g.V_CODE = '10482';
+  SELECT TOP 1 ref_no = STUFF((SELECT DISTINCT ', ' + ref_no FROM App_Vendor_Grievance AS b WHERE b.STATUS='OPEN'
+  AND b.ClosedOn IS NULL AND b.V_CODE='10482' FOR XML PATH('')),1,2,''),
+  CreatedOn = (SELECT TOP 1 FORMAT(b.CreatedOn ,'dd-MM-yyyy') as CreatedOn  FROM App_Vendor_Grievance b WHERE b.STATUS='OPEN' 
+  AND b.ClosedOn IS NULL AND b.V_CODE='10482' ORDER BY b.CreatedOn DESC) FROM App_Vendor_Grievance AS a
+
+
+  i want - CreatedOn , REF_NO TARGET_DT , STATUS and revised_date from another tbl of latest createdon
