@@ -1,14 +1,2 @@
-if (!DbstsAttachment.HasFile)
-{
-    MyMsgBox.show(MyMsgBox.MessageType.Error, "DBSTS Mail Attachment is required!");
-    return;  // stop saving
-}
-
-function validateAttachment() {
-    var fileInput = document.getElementById("<%= DbstsAttachment.ClientID %>");
-    if (fileInput.value === "") {
-        alert("Please upload the DBSTS mail attachment.");
-        return false;
-    }
-    return true;
-}
+select id,CreatedOn,REF_NO,TARGET_DT,STATUS from App_Vendor_Grievance where V_CODE='10482'
+select *from App_Vendor_Grievance_Details where MASTER_ID='D9A121E5-6AE3-4A0F-B1FC-4A5DE6AD2313'
