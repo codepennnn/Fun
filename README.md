@@ -1,2 +1,28 @@
-select id,CreatedOn,REF_NO,TARGET_DT,STATUS from App_Vendor_Grievance where V_CODE='10482'
-select *from App_Vendor_Grievance_Details where MASTER_ID='D9A121E5-6AE3-4A0F-B1FC-4A5DE6AD2313'
+SELECT 
+    a.ID,
+    a.CreatedOn AS MasterCreatedOn,
+    a.REF_NO,
+    a.TARGET_DT,
+    a.STATUS,
+    
+    -- Compliance logic
+    CASE 
+        WHEN a.STATUS = 'Open' THEN 'Y'
+        ELSE 'N'
+    END AS Compliance,
+
+    -- Latest detail record datetime
+    d.LatestCreatedOn,
+    d.DetailData
+
+FROM App_Vendor_Grievance a
+OUTER APPLY
+(
+    SELECT TOP 1 
+        CreatedOn AS LatestCreatedOn,
+        * AS DetailData
+    FROM App_Vendor_Grievance_Details
+    WHERE MASTER_ID = a.ID
+    ORDER BY CreatedOn DESC
+) d
+WHERE a.V_CODE = '10482';
