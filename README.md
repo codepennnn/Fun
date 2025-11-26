@@ -1,103 +1,61 @@
-<div class="SearchCheckBoxList" style="width:287%; position:relative;">
-    
-    <!-- Button -->
-    <button class="btn btn-sm btn-default selectArea w-100 dropdown-btn"
-            type="button" onclick="togglefloatDiv(this);">
-        <span class="filter-option float-left">No item Selected</span>
-        <span class="caret"></span>
-    </button>
+SELECT  newid() as ID,l.LicNo as LabourLicNo,
+l.FromDate,l.ToDate,
+convert(varchar(10),DATEDIFF(DAY, convert(datetime,FromDate,103),convert(datetime,ToDate,103))) AS Duration_Of_Contract,
+ (select concat (V_NAME,', ',ADDRESS) from App_Vendor_Reg R where R.V_CODE=Vcode) as Name_Address_Of_Contractor
+ ,c3.wo_no,
 
-    <!-- Dropdown -->
-    <div class="floatDiv" style="border:1px solid #ced2d5; position:absolute; 
-         z-index:1000; box-shadow:0 6px 12px rgb(0 0 0 / 18%); background:#fff;
-         padding:5px; display:none; width:100%;">
+ (select count( distinct  w.AadharNo)
+   from App_Wagesdetailsjharkhand w 
+   inner join App_EmployeeMaster Em on em.AadharCard=w.AadharNo and em.Sex='M'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' ) sex_M,
 
-        <!-- Search -->
-        <asp:TextBox runat="server" ID="TextBox1" CssClass="form-control form-control-sm"
-                     oninput="filterCheckBox(this)" placeholder="Search..." />
-
-        <!-- List -->
-        <div class="searchList" style="max-height:210px; overflow-y:auto;">
-            <asp:CheckBoxList ID="CC_WorkOrderNo" runat="server"
-                DataTextField="WorkOrderNo" DataValueField="WorkOrderNo"
-                CssClass="form-control-sm" />
-        </div>
-
-        <!-- Hidden value field (if you want selected values) -->
-        <asp:TextBox runat="server" ID="TextBox3" style="display:none;" />
-    </div>
-
-</div>
+   (select count( distinct  w.AadharNo)
+   from App_Wagesdetailsjharkhand w 
+   inner join App_EmployeeMaster Em on em.AadharCard=w.AadharNo and em.Sex='F'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' ) sex_F,
 
 
-// Close all float dropdowns
-function closeAllFloatDivs() {
-    document.querySelectorAll(".floatDiv").forEach(div => div.style.display = "none");
-}
+        
+(select 
+    SUM(tab.TotalMandays) AS TotalMandays_Male
+from (
 
-// Toggle dropdown
-function togglefloatDiv(btn) {
-    closeAllFloatDivs();
+select  distinct  w.AadharNo,   SUM(w.TotPaymentDays) AS TotalMandays
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='M'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
 
-    const floatDiv = btn.nextElementSibling;
-    floatDiv.style.display = floatDiv.style.display === "block" ? "none" : "block";
-
-    // Match button width
-    floatDiv.style.width = btn.getBoundingClientRect().width + "px";
-}
-
-// Close when clicking outside
-document.addEventListener("click", function (event) {
-    if (!event.target.closest(".SearchCheckBoxList")) {
-        closeAllFloatDivs();
-    }
-});
-
-// Search inside checkbox list
-function filterCheckBox(input) {
-    const filter = input.value.toUpperCase();
-    const table = input.parentElement.querySelector("table"); // CheckBoxList renders a table
-    const rows = table.getElementsByTagName("tr");
-
-    for (let i = 0; i < rows.length; i++) {
-        const cell = rows[i].getElementsByTagName("td")[0];
-        const txt = cell.textContent || cell.innerText;
-        rows[i].style.display = txt.toUpperCase().includes(filter) ? "" : "none";
-    }
-}
-
-// Attach events AFTER CheckBoxList is rendered
-window.onload = function () {
-    setTimeout(function () {
-
-        document.querySelectorAll('.SearchCheckBoxList').forEach(function (container) {
-
-            const btnText = container.querySelector(".filter-option");
-            const hiddenBox = container.querySelector("#TextBox3");
-
-            // Attach checkbox change event
-            container.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
-                cb.addEventListener("change", function () {
-
-                    let selected = [];
-                    container.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
-                        if (box.checked) selected.push(box.parentElement.innerText.trim());
-                    });
-
-                    // Update display text
-                    btnText.innerText = selected.length === 0
-                        ? "No item Selected"
-                        : selected.join(", ");
-
-                    // Update hidden textbox (optional)
-                    if (hiddenBox)
-                        hiddenBox.value = selected.join(",");
-                });
-            });
-
-        });
-
-    }, 300); // wait for ASP.NET to fully render CheckBoxList
-};
+  ) tab) TotalMandays_Male,
 
 
+ ( select 
+    SUM(tab.TotalMandays) AS TotalMandays_Male
+from (
+
+select  distinct  w.AadharNo,   SUM(w.TotPaymentDays) AS TotalMandays
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='F'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab)TotalMandays_Male
+
+
+
+
+
+
+
+
+ FROM App_LabourLicenseSubmission l
+ left join App_vendor_form_c3_dtl c3
+ on c3.ll_no=l.licno 
+ WHERE 
+ c3.status='Approved'and
+ FromDate < '2025-06-30 00:00:00.000' 
+ AND ToDate >= '2025-01-01 00:00:00.000' 
+ and VCode='17201' and
+ WorkLocation in('Jamshedpur','Saraiekela');
