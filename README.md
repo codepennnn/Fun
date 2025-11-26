@@ -1,15 +1,22 @@
+SELECT 
+    ISNULL(SUM(tab.Male_Deduction), 0) AS Male_Deduction
+FROM (
+    SELECT  
+        w.AadharNo,
+        SUM(ISNULL(w.PFAmt,0) + ISNULL(w.ESIAmt,0)) AS Male_Deduction
+    FROM app_wagesdetailsjharkhand w
+    INNER JOIN app_employeemaster em 
+        ON em.aadharcard = w.aadharno 
+        AND em.sex = 'M'
+    WHERE w.workorderno = '470002481511'
+      AND w.vendorcode = '17201'
+      AND w.monthwage IN ('1','2','3','4','5','6')
+      AND w.yearwage = '2025'
+    GROUP BY w.AadharNo
+) tab;
 
-select 
-    SUM(isnull(tab.Male_Deduction,0)) AS Male_Deduction
-from (
 
-select  distinct  w.AadharNo,   SUM(isnull(w.PFAmt,0)+isnull(w.ESIAmt,0)) AS Male_Deduction
-   from app_wagesdetailsjharkhand w 
-   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='M'
-   where w.workorderno='470002481511' and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
-  and w.yearwage='2025' group by AadharNo
 
-  ) tab
 
 
 -------------------------------------------------------
