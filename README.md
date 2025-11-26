@@ -1,26 +1,3 @@
-SELECT 
-    ISNULL(SUM(tab.Male_Deduction), 0) AS Male_Deduction
-FROM (
-    SELECT  
-        w.AadharNo,
-        SUM(ISNULL(w.PFAmt,0) + ISNULL(w.ESIAmt,0)) AS Male_Deduction
-    FROM app_wagesdetailsjharkhand w
-    INNER JOIN app_employeemaster em 
-        ON em.aadharcard = w.aadharno 
-        AND em.sex = 'M'
-    WHERE w.workorderno = '470002481511'
-      AND w.vendorcode = '17201'
-      AND w.monthwage IN ('1','2','3','4','5','6')
-      AND w.yearwage = '2025'
-    GROUP BY w.AadharNo
-) tab;
-
-
-
-
-
--------------------------------------------------------
-
 SELECT  newid() as ID,l.LicNo as LabourLicNo,
 l.FromDate,l.ToDate,
 convert(varchar(10),DATEDIFF(DAY, convert(datetime,FromDate,103),convert(datetime,ToDate,103))) AS Duration_Of_Contract,
@@ -64,7 +41,68 @@ select  distinct  w.AadharNo,   SUM(w.TotPaymentDays) AS TotalMandays
    where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
   and w.yearwage='2025' group by AadharNo
 
-  ) tab)TotalMandays_Male
+  ) tab)TotalMandays_Female,
+
+
+
+
+
+  (select 
+  ISNULL(SUM(tab.Male_Deduction), 0) AS Male_Deduction
+from (
+
+select  distinct  w.AadharNo,   SUM(isnull(w.PFAmt,0) + (isnull(w.ESIAmt,0))) AS Male_Deduction
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='M'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab) Male_Deduction,
+
+
+
+
+  (select 
+  ISNULL(SUM(tab.Female_Deduction), 0) AS Female_Deduction
+from (
+
+select  distinct  w.AadharNo,   SUM(isnull(w.PFAmt,0) +  isnull(w.ESIAmt,0)) AS Female_Deduction
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='F'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab)Female_Deduction,
+
+
+
+
+    (select 
+  ISNULL(SUM(tab.Male_Gross), 0) AS Male_Gross
+from (
+
+select  distinct  w.AadharNo,   SUM((isnull(w.TotalWages,0))) AS Male_Gross
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='M'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab) Male_Gross,
+
+
+
+
+  (select 
+  ISNULL(SUM(tab.Female_Gross), 0) AS Female_Gross
+from (
+
+select  distinct  w.AadharNo,  SUM((isnull(w.TotalWages,0)))  AS Female_Gross
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='F'
+   where w.workorderno=c3.wo_no and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab)Female_Gross
 
 
 
