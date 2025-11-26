@@ -1,3 +1,19 @@
+
+select 
+    SUM(isnull(tab.Male_Deduction,0)) AS Male_Deduction
+from (
+
+select  distinct  w.AadharNo,   SUM(isnull(w.PFAmt,0)+isnull(w.ESIAmt,0)) AS Male_Deduction
+   from app_wagesdetailsjharkhand w 
+   inner join app_employeemaster em on em.aadharcard=w.aadharno and em.sex='M'
+   where w.workorderno='470002481511' and w.vendorcode='17201' and w.monthwage in ('1','2','3','4','5','6')
+  and w.yearwage='2025' group by AadharNo
+
+  ) tab
+
+
+-------------------------------------------------------
+
 SELECT  newid() as ID,l.LicNo as LabourLicNo,
 l.FromDate,l.ToDate,
 convert(varchar(10),DATEDIFF(DAY, convert(datetime,FromDate,103),convert(datetime,ToDate,103))) AS Duration_Of_Contract,
