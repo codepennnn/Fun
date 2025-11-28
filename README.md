@@ -1,1 +1,9 @@
-Deserialization failed: The element 'Textbox' in namespace 'http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition' has invalid child element 'Value' in namespace 'http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition'. List of possible elements expected: 'Style, ActionInfo, Top, Left, Height, Width, ZIndex, Visibility, ToolTip, DocumentMapLabel, Bookmark, RepeatWith, CustomProperties, Paragraphs, CanGrow, CanShrink, HideDuplicates, ToggleImage, UserSort, KeepTogether, DataElementName, DataElementOutput, DataElementStyle' in namespace 'http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition' as well as any element in namespace '##other'. Line 64, position 13. 
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition"
+        xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+	<AutoRefresh>0</AutoRefresh>
+	<DataSources>
+		<DataSource Name="DataSet1">
+			<DataSourceReference>/* Leave empty: use LocalReport.DataSources in code */</DataSourceReference>
+		</DataSource>
+	</DataSources>
