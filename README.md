@@ -1,54 +1,39 @@
-public DataSet GetReport(string vcode, string period, int year)
-{
-    string strSQL = @"
-        SELECT * FROM App_Half_Yearly_Details 
-        WHERE Vcode = @Vcode 
-        AND Year = @year 
-        AND Period = @Period";
-
-    Dictionary<string, object> objParam = new Dictionary<string, object>();
-    
-    objParam.Add("Vcode", vcode);
-    objParam.Add("year", year);
-    objParam.Add("Period", period);
-
-    DataHelper dh = new DataHelper();
-    DataSet ds = dh.GetDataset(strSQL, "App_Half_Yearly_Details", objParam);
-    return ds;
-}
-
-
-
-protected void Search_Click(object sender, EventArgs e)
-{
-    BL_Half_Yearly blobj = new BL_Half_Yearly();
-    DataSet ds = new DataSet();
-
-    int year = Convert.ToInt32(Year.SelectedValue);
-    string period = SearchPeriod.SelectedValue;
-    string vcode = Session["UserName"].ToString();
-
-    if (Year.SelectedIndex == 0 || SearchPeriod.SelectedIndex == 0)
-    {
-        ReportViewer1.Visible = false;
-        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, 
-                     "Please select Month & Year !!!");
-        return;
-    }
-
-    ds = blobj.GetReport(vcode, period, year);
-
-    PageRecordDataSet.Clear();
-    PageRecordDataSet.Merge(ds);
-
-    ReportViewer1.Visible = true;
-    ReportViewer1.LocalReport.DataSources.Clear();
-    ReportViewer1.LocalReport.DataSources.Add(
-        new ReportDataSource("DataSet1", ds.Tables[0])
-    );
-
-    ReportViewer1.LocalReport.ReportPath =
-        Server.MapPath("~/App/Report/Half_Yearly_Report.rdlc");
-
-    ReportViewer1.LocalReport.Refresh();
-}
+ID
+Name_Address_Of_Contractor
+Name_and_Address_Of_PrincipalEmp
+Duration_Of_Contract
+Establishment_Of_Principal_Emp_Worked
+Contractors_Establishment_Worked
+Max_No_Contractor_Labour_HalfYr
+Daily_Hours_Of_Work
+Weekly_Holiday
+Weekly_Holiday_Paid
+No_Of_Mandays_Worked_Men
+No_Of_Mandays_Worked_Women
+No_Of_Mandays_Worked_Children
+Amount_Of_Wages_Paid_Men
+Amount_Of_Wages_Paid_Women
+Amount_Of_Wages_Paid_Children
+Amt_Of_Deduct_From_Wages_Men
+Amt_Of_Deduct_From_Wages_Women
+Amt_Of_Deduct_From_Wages_Children
+State
+LabourLicNo
+CreatedOn
+CreatedBy
+RefNo
+VCode
+ResubmitedOn
+Status
+Final_Attachment
+Welfare_Canteen
+Welfare_RestRoom
+Welfare_DrinkingWater
+Welfare_Creches
+Welfare_FirstAid
+Year
+Period
+Name_Address_Of_Establishment
+sex_M
+sex_F
+WorkOrderNo
