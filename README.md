@@ -1,48 +1,45 @@
-  else
-  {
-      DataSet ds = new DataSet();
-      DataSet ds1 = new DataSet();
-      ds = blobj.GetDelete(vc, year, Period);
+public string Generate_Global_RefNo(string objName)
+{
+    string prefix = "", postfix = "";
+    int number = 0, padding = 5;
 
-   ds1 = blobj.Generate_Global_RefNo("HALFYEARLY");
-      string refNo = ds1.ToString();
+    // Step 1 — Get current number
+    string sqlSelect = @"
+        SELECT Prefix, Postfix, number, leftpadding 
+        FROM App_Sys_AutoNumber 
+        WHERE ObjName = @obj";
 
-      if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState == DataRowState.Modified)
-      {
+    Dictionary<string, object> param = new Dictionary<string, object>();
+    param.Add("obj", objName);
 
-          for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
-          {
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"]; = refNo;
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
+    DataHelper dh = new DataHelper();
+    DataSet ds = dh.GetDataset(sqlSelect, "App_Sys_AutoNumber", param);
 
-          }
+    if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+        throw new Exception("AutoNumber configuration missing.");
 
+    DataRow row = ds.Tables[0].Rows[0];
 
-      }
-  }
+    prefix = row["Prefix"].ToString();
+    postfix = row["Postfix"].ToString();
+    number = Convert.ToInt32(row["number"]);
+    padding = Convert.ToInt32(row["leftpadding"]);
 
+    // Step 2 — Increment number
+    number++;
 
-       public DataSet Generate_Global_RefNo(string objName)
+    // Step 3 — Update back to DB
+    string sqlUpdate = @"
+        UPDATE App_Sys_AutoNumber 
+        SET number = @num 
+        WHERE ObjName = @obj";
 
-     {
-         string refNo = "";
-         string prefix = "", postfix = "";
-         int number = 0, padding = 5;
+    Dictionary<string, object> param2 = new Dictionary<string, object>();
+    param2.Add("num", number);
+    param2.Add("obj", objName);
 
-         string strSQL = @"SELECT Prefix, Postfix, number, leftpadding FROM App_Sys_AutoNumber WHERE ObjName = @obj";
+    dh.ExecuteNonQuery(sqlUpdate, param2);
 
-         Dictionary<string, object> objParam = new Dictionary<string, object>();
-
-         objParam.Add("objName", objName);
-     
-
-         DataHelper dh = new DataHelper();
-         DataSet ds = dh.GetDataset(strSQL, "App_Half_Yearly_Details", objParam);
-         return ds;
-     }
+    // Step 4 — Return formatted RefNo
+    return prefix + number.ToString().PadLeft(padding, '0') + postfix;
+}
