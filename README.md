@@ -1,71 +1,48 @@
-public string Generate_Global_RefNo(string objName)
-{
-    string refNo = "";
-    string prefix = "", postfix = "";
-    int number = 0, padding = 5;
+  else
+  {
+      DataSet ds = new DataSet();
+      DataSet ds1 = new DataSet();
+      ds = blobj.GetDelete(vc, year, Period);
 
-    using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["DBCon"].ConnectionString))
-    {
-        con.Open();
-        SqlTransaction tran = con.BeginTransaction();
+   ds1 = blobj.Generate_Global_RefNo("HALFYEARLY");
+      string refNo = ds1.ToString();
 
-        try
-        {
-            // Step 1 — Read current global number
-            SqlCommand cmd = new SqlCommand(@"
-                SELECT Prefix, Postfix, number, leftpadding 
-                FROM App_Sys_AutoNumber 
-                WHERE ObjName = @obj", con, tran);
+      if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState == DataRowState.Modified)
+      {
 
-            cmd.Parameters.AddWithValue("@obj", objName);
-            SqlDataReader dr = cmd.ExecuteReader();
+          for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
+          {
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"]; = refNo;
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
+              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
 
-            if (dr.Read())
-            {
-                prefix = dr["Prefix"].ToString();
-                postfix = dr["Postfix"].ToString();
-                number = Convert.ToInt32(dr["number"]);
-                padding = Convert.ToInt32(dr["leftpadding"]);
-            }
-            dr.Close();
+          }
 
-            // Step 2 — Increment globally (important)
-            number++;
 
-            // Step 3 — Save updated global number
-            SqlCommand update = new SqlCommand(@"
-                UPDATE App_Sys_AutoNumber 
-                SET number = @no 
-                WHERE ObjName = @obj", con, tran);
+      }
+  }
 
-            update.Parameters.AddWithValue("@no", number);
-            update.Parameters.AddWithValue("@obj", objName);
-            update.ExecuteNonQuery();
 
-            // Step 4 — Build RefNo (final output)
-            refNo = prefix + number.ToString().PadLeft(padding, '0') + postfix;
+       public DataSet Generate_Global_RefNo(string objName)
 
-            tran.Commit();
-        }
-        catch
-        {
-            tran.Rollback();
-            throw;
-        }
-    }
+     {
+         string refNo = "";
+         string prefix = "", postfix = "";
+         int number = 0, padding = 5;
 
-    return refNo;
-}
+         string strSQL = @"SELECT Prefix, Postfix, number, leftpadding FROM App_Sys_AutoNumber WHERE ObjName = @obj";
 
-string refNo = bl.Generate_Global_RefNo("HALFYEARLY");
+         Dictionary<string, object> objParam = new Dictionary<string, object>();
 
-foreach (DataRow row in PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows)
-{
-    row["RefNo"] = refNo;   // SAME FOR ALL ROWS
-    row["CreatedBy"] = Session["Username"].ToString();
-    row["CreatedOn"] = DateTime.Now;
+         objParam.Add("objName", objName);
+     
 
-    row.AcceptChanges();
-    row.SetAdded();
-}
-
+         DataHelper dh = new DataHelper();
+         DataSet ds = dh.GetDataset(strSQL, "App_Half_Yearly_Details", objParam);
+         return ds;
+     }
