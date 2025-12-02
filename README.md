@@ -1,11 +1,3 @@
+select * ,DATEDIFF(day, CreatedOn,getdate()) as dayscountCreatedOn,DATEDIFF(day, ResubmitedOn, getdate()) as dayscountResub from App_Half_Yearly_Details
 
-                                    <asp:TemplateField HeaderText="State" HeaderStyle-ForeColor="White" >
-                                       <ItemTemplate>
-                                           <asp:TextBox ID="State" runat="server" CssClass="form-control form-control-sm font-small" Enabled="false">
-                                           </asp:TextBox>
-
-                                       </ItemTemplate>
-                                   </asp:TemplateField>
-
-
-                                   i want to increase width
+i want only here distinct records appear of refno
