@@ -1,19 +1,11 @@
-protected void HalfYearly_Records_SelectedIndexChanged(object sender, EventArgs e)
-{
-    // Get selected DataKey values
-    var keys = HalfYearly_Records.SelectedDataKey.Values;
 
-    // Extract the values by key names exactly as defined in your DataKeyNames
-    string vcode = keys["VCode"].ToString();
-    string year = keys["Year"].ToString();
-    string period = keys["Period"].ToString();
+                                    <asp:TemplateField HeaderText="State" HeaderStyle-ForeColor="White" >
+                                       <ItemTemplate>
+                                           <asp:TextBox ID="State" runat="server" CssClass="form-control form-control-sm font-small" Enabled="false">
+                                           </asp:TextBox>
 
-    // Combine to pass as parameter
-    string strKey = $"{vcode},{year},{period}";
+                                       </ItemTemplate>
+                                   </asp:TemplateField>
 
-    // Call your method
-    GetRecord(strKey);
 
-    // Rebind
-    HalfYearly_Entry_Records.BindData();
-}
+                                   i want to increase width
