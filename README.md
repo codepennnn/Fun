@@ -1,55 +1,18 @@
-  protected void btnSave_Click(object sender, EventArgs e)
-  {
-
-   
-      string refno = SearchLL.SelectedValue;
-      string vcode = Session["UserName"].ToString();
-
-
-      BL_Half_Yearly blobj = new BL_Half_Yearly();
-      DataSet ds = blobj.Get_Data_By_RefNo(refno, vcode);
-
-
-
-      string getFileName = "";
-      List<string> FileList = new List<string>();
-
-      FileUpload fu = (FileUpload)Upload_Half_Yearly_Record.Rows[0].FindControl("Final_Attachment");
-
-      if (fu.HasFile)
+      protected void HalfYearly_Records_SelectedIndexChanged(object sender, EventArgs e)
       {
-          foreach (HttpPostedFile htfiles in fu.PostedFiles)
-          {
-              getFileName = PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ID"].ToString()
-                            + "_" + Path.GetFileName(htfiles.FileName);
+          var  Id = HalfYearly_Records.SelectedDataKey.Values;
 
-              getFileName = Regex.Replace(getFileName,
-                  @"[,+*/?|><&=\#%:;@^$?:'()!~}{`]", "");
+          var Keys = PageRecordDataSet.Tables["App_Half_Yearly_Details"];
 
-              htfiles.SaveAs(@"D:/Cybersoft_Doc/CLMS/Attachments/" + getFileName);
 
-              FileList.Add(getFileName);
-          }
+          string vcode = keys["VCode"].ToString();
+          string period = keys["Period"].ToString();
+          string year = keys["Year"].ToString();
 
-          string attachments = string.Join(",", FileList);
+          string strKey = vcode + "," + year + "," + period;
 
-     
-          foreach (DataRow r in PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows)
-          {
-              r["Final_Attachment"] = attachments;
-          }
+
+          GetRecord(strKey);
+
+          HalfYearly_Entry_Records.BindData();
       }
-
-      bool result = Save();
-
-      if (result)
-      {
-          PageRecordDataSet.Clear();
-          Upload_Half_Yearly_Record.BindData();
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success, "Record saved successfully !");
-      }
-      else
-      {
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, "Error While Saving !");
-      }
-  }
