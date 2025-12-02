@@ -1,18 +1,19 @@
-      protected void HalfYearly_Records_SelectedIndexChanged(object sender, EventArgs e)
-      {
-          var  Id = HalfYearly_Records.SelectedDataKey.Values;
+protected void HalfYearly_Records_SelectedIndexChanged(object sender, EventArgs e)
+{
+    // Get selected DataKey values
+    var keys = HalfYearly_Records.SelectedDataKey.Values;
 
-          var Keys = PageRecordDataSet.Tables["App_Half_Yearly_Details"];
+    // Extract the values by key names exactly as defined in your DataKeyNames
+    string vcode = keys["VCode"].ToString();
+    string year = keys["Year"].ToString();
+    string period = keys["Period"].ToString();
 
+    // Combine to pass as parameter
+    string strKey = $"{vcode},{year},{period}";
 
-          string vcode = keys["VCode"].ToString();
-          string period = keys["Period"].ToString();
-          string year = keys["Year"].ToString();
+    // Call your method
+    GetRecord(strKey);
 
-          string strKey = vcode + "," + year + "," + period;
-
-
-          GetRecord(strKey);
-
-          HalfYearly_Entry_Records.BindData();
-      }
+    // Rebind
+    HalfYearly_Entry_Records.BindData();
+}
