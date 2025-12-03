@@ -1,33 +1,55 @@
-protected void SearchLLBtn_Click(object sender, EventArgs e)
+protected void Search_Click(object sender, EventArgs e)
 {
-    // 1️⃣ If no ref no selected → STOP + hide file upload section
-    if (string.IsNullOrEmpty(SearchLL.SelectedValue))
+  
+    if (Session["UserName"] == null)
     {
-        PageRecordDataSet.Tables["App_Half_Yearly_Details"].Clear();
-        Upload_Half_Yearly_Record.Visible = false;   // HIDE upload container
-
-        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
-                      "Please select a Ref No first.");
+       
         return;
     }
 
-    // 2️⃣ If RefNo selected → load the data
-    PageRecordDataSet.EnforceConstraints = false;
 
-    string refno = SearchLL.SelectedValue;
+
+    if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["Status"].ToString() == "Approved")
+    {
+
+        SearchLLBtn.Enabled = false;
+
+
+    }
+    else if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["Status"].ToString() == "Pending With CC")
+    {
+
+        SearchLLBtn.Enabled = false;
+
+
+    }
+    else if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["Status"].ToString() == "Return")
+    {
+        SearchLLBtn.Enabled = true;
+
+    }
+
+    else
+    {
+
+
+
+    }
+
+
+
     string vcode = Session["UserName"].ToString();
+    int year = Convert.ToInt32(Year.SelectedValue);
+    string period = SearchPeriod.SelectedValue; 
 
+ 
     BL_Half_Yearly blobj = new BL_Half_Yearly();
-    DataSet ds = blobj.Get_Data_By_RefNo(refno, vcode);
+    DataSet ds = blobj.Get_Ref_NoDDL(vcode, period, year);
 
-    // 3️⃣ Load into PageRecordDataSet
-    PageRecordDataSet.Tables["App_Half_Yearly_Details"].Clear();
-    PageRecordDataSet.Merge(ds);
-
-    // 4️⃣ Show file upload section with data
-    Upload_Half_Yearly_Record.Visible = true;
-    Upload_Half_Yearly_Record.BindData();
-
-    // 5️⃣ Show dropdown too
-    divLL.Style["display"] = "flex";
+      
+    string script14 = "document.getElementById('" + divLL.ClientID + "').style.display = 'flex';";
+    ScriptManager.RegisterStartupScript(this, this.GetType(), "showBtnExportsum14", script14, true);
+    SearchLLBtn.Visible = true;
+    BindRefNoDropdown(ds);
+ 
 }
