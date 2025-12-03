@@ -12,30 +12,35 @@ protected void Search_Click(object sender, EventArgs e)
     // 1️⃣ LOAD ALL REFNO AVAILABLE FOR THIS VENDOR+YEAR+PERIOD
     DataSet dsRef = blobj.Get_Ref_NoDDL(vcode, period, year);
 
-    // Show dropdown for RefNo selection
+    // 2️⃣ If no record exists → STOP and show message
+    if (dsRef == null || dsRef.Tables[0].Rows.Count == 0)
+    {
+        // hide upload section
+        Upload_Half_Yearly_Record.Visible = false;
+
+        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
+            "No record found! Please submit Half Yearly return first, then upload attachment.");
+
+        return;
+    }
+
+    // 3️⃣ Show dropdown
     divLL.Style["display"] = "flex";
     SearchLLBtn.Visible = true;
 
     BindRefNoDropdown(dsRef);
 
-    // 2️⃣ No RefNo available → allow normal search
-    if (dsRef.Tables[0].Rows.Count == 0)
-    {
-        SearchLLBtn.Enabled = true;
-        return;
-    }
-
-    // 3️⃣ TAKE THE LATEST REFNO
+    // 4️⃣ Get latest RefNo from dataset
     string latestRefNo = dsRef.Tables[0].Rows[0]["RefNo"].ToString();
 
-    // 4️⃣ GET STATUS OF THIS REFNO
+    // 5️⃣ FETCH STATUS OF THAT REFNO
     DataSet dsStatus = blobj.Get_Data_By_RefNo(latestRefNo, vcode);
 
     if (dsStatus.Tables[0].Rows.Count > 0)
     {
         string status = dsStatus.Tables[0].Rows[0]["Status"].ToString();
 
-        // 5️⃣ CHECK STATUS AND ENABLE/DISABLE SEARCH BUTTON
+        // 6️⃣ Disable Search button based on status
         if (status == "Approved" || status == "Pending With CC")
         {
             SearchLLBtn.Enabled = false;
@@ -43,13 +48,8 @@ protected void Search_Click(object sender, EventArgs e)
             MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
                 "This record is already " + status + ". You cannot upload again.");
         }
-        else if (status == "Return")
-        {
-            SearchLLBtn.Enabled = true;
-        }
         else
         {
-            // Unknown status → allow but warn
             SearchLLBtn.Enabled = true;
         }
     }
