@@ -1,3 +1,39 @@
+
+   SELECT ISNULL((
+    SELECT top 1 COUNT(DISTINCT w.AadharNo) FROM App_Wagesdetailsjharkhand AS w
+        INNER JOIN App_EmployeeMaster AS em
+            ON em.AadharCard = w.AadharNo AND em.Sex = 'M'
+        WHERE w.workorderno = c3.wo_no
+          AND w.vendorcode = @Vcode
+          AND CHARINDEX(',' + CAST(w.monthwage AS VARCHAR(10)) + ',', ',' + @wageMonth + ',') > 0
+
+          AND w.yearwage =  @year
+          group by MonthWage
+    order by COUNT(DISTINCT w.AadharNo) desc
+    ), 0) AS sex_M,
+
+    
+SELECT ISNULL((
+    SELECT top 1 COUNT(DISTINCT w.AadharNo) FROM App_Wagesdetailsjharkhand AS w
+        INNER JOIN App_EmployeeMaster AS em
+            ON em.AadharCard = w.AadharNo AND em.Sex = 'F'
+        WHERE w.workorderno = c3.wo_no
+          AND w.vendorcode = @Vcode
+        AND CHARINDEX(',' + CAST(w.monthwage AS VARCHAR(10)) + ',', ',' + @wageMonth + ',') > 0
+
+          AND w.yearwage =  @year
+          group by MonthWage
+    order by COUNT(DISTINCT w.AadharNo) desc
+    ), 0) AS sex_F,
+
+
+
+
+
+
+
+
+
 protected void Search_Click(object sender, EventArgs e)
 {
     string vcode = Session["UserName"].ToString();
