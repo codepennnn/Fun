@@ -1,79 +1,30 @@
-<asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False"
-    CssClass="table table-bordered table-striped" Width="100%">
-    <Columns>
-
-        <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
-
-        <asp:TemplateField HeaderText="Upload Attachment">
-            <ItemTemplate>
-                <asp:FileUpload ID="fuUpload" runat="server" AllowMultiple="true" CssClass="form-control" />
-            </ItemTemplate>
-        </asp:TemplateField>
-
-    </Columns>
-</asp:GridView>
-
-<div class="text-center mt-3">
-    <asp:Button ID="btnUploadAll" runat="server" CssClass="btn btn-success"
-        Text="Upload All Attachments" OnClick="btnUploadAll_Click" />
-</div>
-
-    
-    
-    
-    
-    
-    <asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False" CssClass="table">
-            <Columns>
-                <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
-
-                <asp:TemplateField HeaderText="Upload">
-                    <ItemTemplate>
-                        <asp:FileUpload ID="fuUpload" runat="server" AllowMultiple="true" />
-                        <asp:Button ID="btnUpload" runat="server" Text="Upload"
-                                    CommandName="Upload"
-                                    CommandArgument='<%# Eval("RefNo") %>'
-                                    CssClass="btn btn-sm btn-primary" />
-                    </ItemTemplate>
-                </asp:TemplateField>
-
-             
-            </Columns>
-        </asp:GridView>
+              <asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False"
+                  CssClass="table table-bordered table-striped" Width="100%" PagerSettings-Visible="False" PagerStyle-HorizontalAlign="Center" RowStyle-ForeColor="Black"
+                      PagerStyle-Wrap="False" HeaderStyle-Font-Size="13px" RowStyle-Font-Size="11px" class="border " Style="margin-top: 12px;" CssClass="styled-grid">
+                      <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                 
+                <%--  <HeaderStyle BackColor="#2f4f4f" ForeColor="White" Font-Bold="true" HorizontalAlign="Center" />--%>
+                  
+                  <Columns>
 
 
-protected void gvRefUpload_RowCommand(object sender, GridViewCommandEventArgs e)
-{
-    if (e.CommandName == "Upload")
-    {
-        string refNo = e.CommandArgument.ToString();
-        GridViewRow row = (GridViewRow)((Control)e.CommandSource).NamingContainer;
+                      
+                      <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
 
-        FileUpload fu = (FileUpload)row.FindControl("fuUpload");
+                      <asp:TemplateField HeaderText="Upload Attachment">
+                          <ItemTemplate>
+                              <asp:FileUpload ID="fuUpload" runat="server" AllowMultiple="true" CssClass="form-control" />
+                          </ItemTemplate>
+                      </asp:TemplateField>
 
-        if (!fu.HasFile)
-        {
-            MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
-                "Please select a file to upload.");
-            return;
-        }
-
-        List<string> fileNames = new List<string>();
-
-        foreach (HttpPostedFile file in fu.PostedFiles)
-        {
-            string fileName = refNo.Replace("/", "_") + "_" + file.FileName;
-            file.SaveAs(@"D:/Cybersoft_Doc/CLMS/Attachments/" + fileName);
-            fileNames.Add(fileName);
-        }
-
-        string finalAttachments = string.Join(",", fileNames);
-
-        BL_Half_Yearly blobj = new BL_Half_Yearly();
-        blobj.SaveAttachment(refNo, finalAttachments);
-
-        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success,
-            "Attachment uploaded successfully!");
-    }
-}
-
+                  </Columns>
+                    <EditRowStyle BackColor="#999999" />
+<FooterStyle BackColor="#003570" ForeColor="White" Font-Bold="True" />
+<HeaderStyle BackColor="#003570" Font-Bold="True" ForeColor="White" HorizontalAlign="Center" />
+<RowStyle BackColor="#F7F6F3" ForeColor="#333333" />
+<SelectedRowStyle BackColor="#E2DED6" Font-Bold="False" ForeColor="#333333" />
+<SortedAscendingCellStyle BackColor="#E9E7E2" />
+<SortedAscendingHeaderStyle BackColor="#506C8C" />
+<SortedDescendingCellStyle BackColor="#FFFDF8" />
+<SortedDescendingHeaderStyle BackColor="#6F8DAE" />
+              </asp:GridView>
