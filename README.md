@@ -1,19 +1,14 @@
-      <asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False"
-          CssClass="table table-bordered table-striped" Width="100%" >
-         
-          <HeaderStyle BackColor="#2f4f4f" ForeColor="White" Font-Bold="true" HorizontalAlign="Center" />
-          
-          <Columns>
+/* Compact GridView */
+.compact-grid th,
+.compact-grid td {
+    padding: 4px 6px !important;   /* Reduce height */
+    font-size: 12px !important;
+}
 
+.compact-grid th {
+    height: 32px !important;       /* Header height */
+}
 
-              
-              <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
-
-              <asp:TemplateField HeaderText="Upload Attachment">
-                  <ItemTemplate>
-                      <asp:FileUpload ID="fuUpload" runat="server" AllowMultiple="true" CssClass="form-control" />
-                  </ItemTemplate>
-              </asp:TemplateField>
-
-          </Columns>
-      </asp:GridView>
+.compact-grid td {
+    height: 28px !important;       /* Row height */
+}
