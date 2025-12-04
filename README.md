@@ -1,3 +1,24 @@
+ISNULL((
+    SELECT TOP 1 
+        COUNT(DISTINCT w.AadharNo)
+    FROM App_Wagesdetailsjharkhand w
+    INNER JOIN App_EmployeeMaster em 
+        ON em.AadharCard = w.AadharNo 
+       AND em.Sex = 'M'
+    WHERE w.workorderno = c3.wo_no
+      AND w.vendorcode = @Vcode
+      AND w.yearwage = @year
+      AND CHARINDEX(',' + CAST(w.monthwage AS VARCHAR(10)) + ',', ',' + @wageMonth + ',') > 0
+    GROUP BY MonthWage
+    ORDER BY COUNT(DISTINCT w.AadharNo) DESC
+), 0) AS sex_M,
+
+
+
+
+
+
+
 
    SELECT ISNULL((
     SELECT top 1 COUNT(DISTINCT w.AadharNo) FROM App_Wagesdetailsjharkhand AS w
