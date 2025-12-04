@@ -33,3 +33,77 @@ protected void Search_Click(object sender, EventArgs e)
             "No RefNo found for the selected period.");
     }
 }
+
+
+protected void ddlRefNo_SelectedIndexChanged(object sender, EventArgs e)
+{
+    if (ddlRefNo.SelectedValue == "")
+    {
+        ReportViewer1.Visible = false;
+        return;
+    }
+
+    LoadReport();
+}
+
+private void LoadReport()
+{
+    string vcode = Session["UserName"].ToString();
+    string refNo = ddlRefNo.SelectedValue;
+
+    BL_Half_Yearly blobj = new BL_Half_Yearly();
+    DataSet ds = blobj.GetReportByRefNo(vcode, refNo);
+
+    if (ds == null || ds.Tables[0].Rows.Count == 0)
+    {
+        ReportViewer1.Visible = false;
+        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, 
+            "No report data found for the selected RefNo.");
+        return;
+    }
+
+    ReportViewer1.LocalReport.ReportPath = "App\\Report\\Half_Yearly_Report.rdlc";
+    ReportViewer1.LocalReport.DataSources.Clear();
+
+    ReportDataSource rds = new ReportDataSource("DataSet1", ds.Tables[0]);
+    ReportViewer1.LocalReport.DataSources.Add(rds);
+
+    ReportViewer1.Visible = true;
+    ReportViewer1.LocalReport.Refresh();
+}
+
+
+
+
+public DataSet GetRefNoList(string vcode, string period, int year)
+{
+    string sql = @"SELECT DISTINCT RefNo
+                   FROM App_Half_Yearly_Details
+                   WHERE VCode=@VCode AND Period=@Period AND Year=@Year
+                   ORDER BY RefNo";
+
+    Dictionary<string, object> p = new Dictionary<string, object>();
+    p.Add("VCode", vcode);
+    p.Add("Period", period);
+    p.Add("Year", year);
+
+    DataHelper dh = new DataHelper();
+    return dh.GetDataset(sql, "RefNoList", p);
+}
+
+public DataSet GetReportByRefNo(string vcode, string refNo)
+{
+    string sql = @"SELECT *
+                   FROM App_Half_Yearly_Details
+                   WHERE VCode=@VCode AND RefNo=@RefNo";
+
+    Dictionary<string, object> p = new Dictionary<string, object>();
+    p.Add("VCode", vcode);
+    p.Add("RefNo", refNo);
+
+    DataHelper dh = new DataHelper();
+    return dh.GetDataset(sql, "ReportData", p);
+}
+
+
+
