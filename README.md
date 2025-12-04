@@ -1,3 +1,28 @@
+<asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False"
+    CssClass="table table-bordered table-striped" Width="100%">
+    <Columns>
+
+        <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
+
+        <asp:TemplateField HeaderText="Upload Attachment">
+            <ItemTemplate>
+                <asp:FileUpload ID="fuUpload" runat="server" AllowMultiple="true" CssClass="form-control" />
+            </ItemTemplate>
+        </asp:TemplateField>
+
+    </Columns>
+</asp:GridView>
+
+<div class="text-center mt-3">
+    <asp:Button ID="btnUploadAll" runat="server" CssClass="btn btn-success"
+        Text="Upload All Attachments" OnClick="btnUploadAll_Click" />
+</div>
+
+    
+    
+    
+    
+    
     <asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False" CssClass="table">
             <Columns>
                 <asp:BoundField DataField="RefNo" HeaderText="Reference No" />
