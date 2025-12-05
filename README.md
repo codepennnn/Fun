@@ -1,3 +1,21 @@
+
+
+
+string displayPeriod = "";
+
+if (period == "Jan-June")
+{
+    displayPeriod = $"Jan{year.ToString().Substring(2)} - June{year.ToString().Substring(2)}";
+}
+else
+{
+    displayPeriod = $"July{year.ToString().Substring(2)} - Dec{year.ToString().Substring(2)}";
+}
+
+
+--------------
+
+
 SET DATEFIRST 7;  -- Sunday = 1  (important for DATEPART)
 
 ;WITH d AS (
