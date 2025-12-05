@@ -1,64 +1,78 @@
-  protected void btnSave_Click(object sender, EventArgs e)
-  {
-      string vcode = Session["UserName"].ToString();
-      BL_Half_Yearly blobj = new BL_Half_Yearly();
+ function validateCompliance() {
 
-      foreach (GridViewRow row in gvRefUpload.Rows)
-      {
-          string refno = row.Cells[0].Text.Trim(); 
-          FileUpload fu = (FileUpload)row.FindControl("Final_Attachment");
+  
+     var fileInput = document.getElementById("MainContent_Upload_Half_Yearly_Record_Final_Attachment_0");
 
-          if (fu != null && fu.HasFile)
-          {
-             
-              DataSet ds = blobj.Get_Data_By_RefNo(refno, vcode);
 
-              if (ds == null || ds.Tables[0].Rows.Count == 0)
-                  continue;
+     var checks = document.querySelectorAll(".compact-grid input[type='file']");
+     var atLeastOne = Array.from(checks).some(cb => cb.checked);
 
-              PageRecordDataSet.Tables["App_Half_Yearly_Details"].Clear();
-              PageRecordDataSet.Merge(ds);
+     if (!atLeastOne) {
+         alert("Please upload All the attachment.");
+         return false;
+     }
 
-         
-              List<string> fileList = new List<string>();
 
-              foreach (HttpPostedFile file in fu.PostedFiles)
-              {
-                  string fileName =
-                      PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ID"].ToString()
-                      + "_" + Path.GetFileName(file.FileName);
 
-                  fileName = Regex.Replace(fileName, @"[,+*/?|><&=\#%:;@^$?:'()!~}{`]", "");
+     
 
-                  file.SaveAs(@"C:/Cybersoft_Doc/CLMS/Attachments/" + fileName);
+ }
 
-                  fileList.Add(fileName);
-              }
 
-              string attachments = string.Join(",", fileList);
+   <asp:GridView ID="gvRefUpload" runat="server" AutoGenerateColumns="False"
+      CssClass="table table-bordered table-striped compact-grid" >
+     
+      <HeaderStyle BackColor="#2f4f4f" ForeColor="White" Font-Bold="true" HorizontalAlign="Center" />
+      
+      <Columns>
 
-           
-              foreach (DataRow dr in PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows)
-              {
-                  dr["Final_Attachment"] = attachments;
-                  dr["Status"] = "Pending With CC";
-              }
 
-             
-          }
-      }
+          
+          <asp:BoundField DataField="LabourLicNo" HeaderText="LabourLicNo" ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" />
 
-      bool result = Save();
+          <asp:TemplateField HeaderText="Upload Attachment">
+              <ItemTemplate>
+                  <asp:FileUpload ID="Final_Attachment" runat="server" AllowMultiple="true" CssClass="form-control" />
+              </ItemTemplate>
+          </asp:TemplateField>
 
-      if (result)
-      {
+      </Columns>
+  </asp:GridView>
 
-         // btn.Visible = false;
+  <div class="text-center mt-3">
+      <asp:Button ID="btnSave" runat="server" CssClass="btn btn-warning" OnClick="btnSave_Click"
+          Text="Upload All Attachments" />
+  </div>
 
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success, "Record saved successfully !");
-      }
-      else
-      {
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, "Error While Saving !");
-      }
-  }
+
+all attachment should be filled then submit and attachment only pdf and excel
+
+
+and add validation below that if already uploaded data on selected month year then show alert message 
+     protected void Search_Click(object sender, EventArgs e)
+     {
+         string vcode = Session["UserName"].ToString();
+         int year = Convert.ToInt32(Year.SelectedValue);
+         string period = SearchPeriod.SelectedValue;
+
+         BL_Half_Yearly blobj = new BL_Half_Yearly();
+         DataSet ds = blobj.Get_LabourLicNo(vcode, period, year);
+
+         if (ds == null || ds.Tables[0].Rows.Count == 0)
+         {
+             MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
+                 "No records found. Please submit Half Yearly first.");
+             gvRefUpload.Visible = false;
+             return;
+         }
+
+         gvRefUpload.Visible = true;
+         gvRefUpload.DataSource = ds.Tables[0];
+         gvRefUpload.DataBind();
+         btnSave.Visible = true;
+     }
+
+
+
+
+  
