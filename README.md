@@ -1,94 +1,72 @@
-GO
-CREATE TRIGGER [dbo].[RefNo_Half_Yearly] 
-   ON  dbo.App_Half_Yearly_Details
-   INSTEAD OF INsert
-AS 
-BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
-	SET NOCOUNT ON;
-SELECT * INTO #Inserted FROM Inserted
- 
-declare		@OutPut varchar(255)
+ protected void btnSave_Click(object sender, EventArgs e)
+ {
+     string vcode = Session["UserName"].ToString();
+     string period = SearchPeriod.SelectedValue;
+     string year = Year.SelectedValue;
+     BL_Half_Yearly blobj = new BL_Half_Yearly();
 
-EXEC	[dbo].[GetAutoNumberNoLeadingZero]
-		@p1=N'HALFYEARLY',
-		@OutPut = @OutPut OUTPUT
+     foreach (GridViewRow row in gvRefUpload.Rows)
+     {
+         string lic = row.Cells[0].Text.Trim(); 
+         FileUpload fu = (FileUpload)row.FindControl("Final_Attachment");
 
-     UPDATE #Inserted SET RefNo = @OutPut
-     INSERT INTO App_Half_Yearly_Details SELECT * FROM #Inserted
-    -- Insert statements for trigger here
+         if (fu != null && fu.HasFile)
+         {
+            
+             DataSet ds = blobj.Get_Data_By_Lic(lic, vcode, period, year);
 
-END
+             if (ds == null || ds.Tables[0].Rows.Count == 0)
+                 continue;
 
-      if (isExist)
-      {
-          //blobj.GetDelete(vc, year, Period);
-          //string oldRef = dsExist.Tables[0].Rows[0]["RefNo"].ToString();
-          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["RefNo"] = oldRef;
-          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ResubmitedOn"] = System.DateTime.Now;
-          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].AcceptChanges();
+             PageRecordDataSet.Tables["App_Half_Yearly_Details"].Clear();
+             PageRecordDataSet.Merge(ds);
 
-          DataSet ds = new DataSet();
-          ds = blobj.GetDelete(vc, year, Period);
+        
+             List<string> fileList = new List<string>();
 
-          if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState.ToString() == "Modified")
-          {
+             foreach (HttpPostedFile file in fu.PostedFiles)
+             {
+                 string fileName =
+                     PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ID"].ToString()
+                     + "_" + Path.GetFileName(file.FileName);
 
-              string oldRef = dsExist.Tables[0].Rows[0]["RefNo"].ToString();
-              for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
-              {
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"] = oldRef;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
+                 fileName = Regex.Replace(fileName, @"[,+*/?|><&=\#%:;@^$?:'()!~}{`]", "");
 
-              }
+                 file.SaveAs(@"D:/Cybersoft_Doc/CLMS/Attachments/" + fileName);
 
+                 fileList.Add(fileName);
+             }
 
-          }
-      }
-      else
-      {
-          DataSet ds = new DataSet();
-          DataSet ds1 = new DataSet();
-          ds = blobj.GetDelete(vc, year, Period);
+             string attachments = string.Join(",", fileList);
 
-      
-          string refNo = blobj.Generate_Global_RefNo("HALFYEARLY");
+          
+             foreach (DataRow dr in PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows)
+             {
+                 dr["Final_Attachment"] = attachments;
+                 dr["Status"] = "Pending With CC";
+             }
 
-          if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState == DataRowState.Modified)
-          {
+            
+         }
+     }
 
-              for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
-              {
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"] = refNo;
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
-                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
+     bool result = Save();
 
-              }
+     if (result)
+     {
+
+        // btn.Visible = false;
+
+         MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success, "Record saved successfully !");
 
 
-          }
+         gvRefUpload.Visible = false;
+         gvRefUpload.DataBind();
+         btnSave.Visible = false;
+     }
+     else
+     {
+         MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, "Error While Saving !");
+     }
 
-
-                  public DataSet Generate_Global_RefNo(string objName)
-        {
-            string strSQL = @"select * from App_Sys_AutoNumber where ObjName=@objName";
-
-            Dictionary<string, object> objParam = new Dictionary<string, object>();
-
-            objParam.Add("objName", objName);
-            DataHelper dh = new DataHelper();
-            DataSet ds = dh.GetDataset(strSQL, "App_Half_Yearly_Details", objParam);
-            return ds;
-        }
+when i have two records of licensee its saving only last attachment and satsus why first record attachment and status not saving
