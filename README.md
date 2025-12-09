@@ -1,50 +1,94 @@
-private void LoadReport()
-{
-    string lic = ddlLabourLicNo.SelectedValue;
-    string vcode = Session["UserName"].ToString();
-    string year = Year.SelectedValue;
-    string period = SearchPeriod.SelectedValue;
+GO
+CREATE TRIGGER [dbo].[RefNo_Half_Yearly] 
+   ON  dbo.App_Half_Yearly_Details
+   INSTEAD OF INsert
+AS 
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+SELECT * INTO #Inserted FROM Inserted
+ 
+declare		@OutPut varchar(255)
 
-    // ----- PERIOD DISPLAY -----
-    string displayPeriod = (period == "Jan-June")
-        ? $"Jan{year.Substring(2)} - June{year.Substring(2)}"
-        : $"July{year.Substring(2)} - Dec{year.Substring(2)}";
+EXEC	[dbo].[GetAutoNumberNoLeadingZero]
+		@p1=N'HALFYEARLY',
+		@OutPut = @OutPut OUTPUT
 
-    BL_Half_Yearly blobj = new BL_Half_Yearly();
-    DataSet ds = blobj.Get_Report_Data(lic, vcode, year, period);
+     UPDATE #Inserted SET RefNo = @OutPut
+     INSERT INTO App_Half_Yearly_Details SELECT * FROM #Inserted
+    -- Insert statements for trigger here
 
-    if (ds == null || ds.Tables[0].Rows.Count == 0)
-    {
-        ReportViewer1.Visible = false;
-        MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors,
-            "No report data found for the selected Ref No.");
-        return;
-    }
+END
 
-    // ----- FETCH VENDOR NAME -----
-    BL_Vendor_RFQ_Block_Unblock blobj2 = new BL_Vendor_RFQ_Block_Unblock();
-    DataSet dsV = blobj2.GetVName(vcode);
+      if (isExist)
+      {
+          //blobj.GetDelete(vc, year, Period);
+          //string oldRef = dsExist.Tables[0].Rows[0]["RefNo"].ToString();
+          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["RefNo"] = oldRef;
+          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ResubmitedOn"] = System.DateTime.Now;
+          //PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].AcceptChanges();
 
-    string vname = "";
-    if (dsV != null && dsV.Tables[0].Rows.Count > 0)
-    {
-        vname = dsV.Tables[0].Rows[0]["V_NAME"].ToString();
-    }
+          DataSet ds = new DataSet();
+          ds = blobj.GetDelete(vc, year, Period);
 
-    // ----- PASS PARAMETERS TO RDLC -----
-    ReportParameter[] rp = new ReportParameter[]
-    {
-        new ReportParameter("PeriodDisplay", displayPeriod),
-        new ReportParameter("VendorName", vname)  // <--------- NEW PARAMETER
-    };
+          if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState.ToString() == "Modified")
+          {
 
-    ReportViewer1.LocalReport.ReportPath = "App\\Report\\Half_Yearly_Report.rdlc";
-    ReportViewer1.LocalReport.DataSources.Clear();
-    ReportViewer1.LocalReport.SetParameters(rp);
+              string oldRef = dsExist.Tables[0].Rows[0]["RefNo"].ToString();
+              for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
+              {
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"] = oldRef;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
 
-    ReportDataSource rds = new ReportDataSource("DataSet1", ds.Tables[0]);
-    ReportViewer1.LocalReport.DataSources.Add(rds);
+              }
 
-    ReportViewer1.Visible = true;
-    ReportViewer1.LocalReport.Refresh();
-}
+
+          }
+      }
+      else
+      {
+          DataSet ds = new DataSet();
+          DataSet ds1 = new DataSet();
+          ds = blobj.GetDelete(vc, year, Period);
+
+      
+          string refNo = blobj.Generate_Global_RefNo("HALFYEARLY");
+
+          if (PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0].RowState == DataRowState.Modified)
+          {
+
+              for (int i = 0; i < PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows.Count; i++)
+              {
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["VCode"] = Session["Username"].ToString();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Year"] = Year.SelectedValue;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["Period"] = SearchPeriod.SelectedValue;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["RefNo"] = refNo;
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].AcceptChanges();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i].SetAdded();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedBy"] = Session["UserName"].ToString();
+                  PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[i]["CreatedOn"] = System.DateTime.Now;
+
+              }
+
+
+          }
+
+
+                  public DataSet Generate_Global_RefNo(string objName)
+        {
+            string strSQL = @"select * from App_Sys_AutoNumber where ObjName=@objName";
+
+            Dictionary<string, object> objParam = new Dictionary<string, object>();
+
+            objParam.Add("objName", objName);
+            DataHelper dh = new DataHelper();
+            DataSet ds = dh.GetDataset(strSQL, "App_Half_Yearly_Details", objParam);
+            return ds;
+        }
