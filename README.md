@@ -1,11 +1,3 @@
-ReportParameter[] rp = new ReportParameter[]
-{
-    new ReportParameter("PeriodDisplay", displayPeriod)
-};
-
-ReportViewer1.LocalReport.SetParameters(rp);
-ReportViewer1.LocalReport.Refresh();
-
-=Parameters!PeriodDisplay.Value
+AND CHARINDEX(',' + CAST(w.monthwage AS VARCHAR(10)) + ',', '1,2,3,4,5,6',') > 0
 
 
