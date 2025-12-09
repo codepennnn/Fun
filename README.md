@@ -1,80 +1,55 @@
-  protected void btnSave_Click(object sender, EventArgs e)
-  {
-      string vcode = Session["UserName"].ToString();
-      string period = SearchPeriod.SelectedValue;
-      string year = Year.SelectedValue;
-      BL_Half_Yearly blobj = new BL_Half_Yearly();
+protected void btnSave_Click(object sender, EventArgs e)
+{
+    string vcode = Session["UserName"].ToString();
+    string period = SearchPeriod.SelectedValue;
+    string year = Year.SelectedValue;
+    BL_Half_Yearly blobj = new BL_Half_Yearly();
 
+    foreach (GridViewRow row in gvRefUpload.Rows)
+    {
+        string lic = row.Cells[0].Text.Trim();
+        FileUpload fu = (FileUpload)row.FindControl("Final_Attachment");
 
-      PageRecordDataSet.Tables["App_Half_Yearly_Details"].Clear();
-      foreach (GridViewRow row in gvRefUpload.Rows)
-      {
-          string lic = row.Cells[0].Text.Trim(); 
-          FileUpload fu = (FileUpload)row.FindControl("Final_Attachment");
+        if (fu == null || !fu.HasFile)
+            continue;  // skip if no file uploaded
 
-          if (fu != null && fu.HasFile)
-          {
-             
-              DataSet ds = blobj.Get_Data_By_Lic(lic, vcode, period, year);
+        // ---------- GET ONLY THIS LICENSE DATA ----------
+        DataSet ds = blobj.Get_Data_By_Lic(lic, vcode, period, year);
+        if (ds == null || ds.Tables[0].Rows.Count == 0)
+            continue;
 
-              if (ds == null || ds.Tables[0].Rows.Count == 0)
-                  continue;
+        // build file list
+        List<string> fileList = new List<string>();
 
-            
-              PageRecordDataSet.Merge(ds);
+        foreach (HttpPostedFile file in fu.PostedFiles)
+        {
+            string fileName =
+                ds.Tables[0].Rows[0]["ID"].ToString() + "_" +
+                Path.GetFileName(file.FileName);
 
-         
-              List<string> fileList = new List<string>();
+            fileName = Regex.Replace(fileName,
+                @"[,+*/?|><&=\#%:;@^$?:'()!~}{`]", "");
 
-              foreach (HttpPostedFile file in fu.PostedFiles)
-              {
-                  string fileName =
-                      PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows[0]["ID"].ToString()
-                      + "_" + Path.GetFileName(file.FileName);
+            file.SaveAs(@"D:/Cybersoft_Doc/CLMS/Attachments/" + fileName);
+            fileList.Add(fileName);
+        }
 
-                  fileName = Regex.Replace(fileName, @"[,+*/?|><&=\#%:;@^$?:'()!~}{`]", "");
+        string attachments = string.Join(",", fileList);
 
-                  file.SaveAs(@"D:/Cybersoft_Doc/CLMS/Attachments/" + fileName);
+        // ---------- UPDATE ONLY THIS LIC'S RECORDS ----------
+        foreach (DataRow dr in ds.Tables[0].Rows)
+        {
+            dr["Final_Attachment"] = attachments;
+            dr["Status"] = "Pending With CC";
+        }
 
-                  fileList.Add(fileName);
-              }
+        // ---------- SAVE THIS LIC IMMEDIATELY ----------
+        blobj.SaveRecord(ref ds);
+    }
 
-              string attachments = string.Join(",", fileList);
+    MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success,
+        "Record saved successfully !");
 
-           
-              foreach (DataRow dr in PageRecordDataSet.Tables["App_Half_Yearly_Details"].Rows)
-              {
-                  dr["Final_Attachment"] = attachments;
-                  dr["Status"] = "Pending With CC";
-              }
-
-             
-          }
-      }
-
-      bool result = Save();
-
-      if (result)
-      {
-
-         // btn.Visible = false;
-
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Success, "Record saved successfully !");
-
-
-          gvRefUpload.Visible = false;
-          gvRefUpload.DataBind();
-          btnSave.Visible = false;
-      }
-      else
-      {
-          MyMsgBox.show(CLMS.Control.MyMsgBox.MessageType.Errors, "Error While Saving !");
-      }
-  }
-
-   public bool SaveRecord(ref DataSet recordDataset)
- {
-     DataHelper dh = new DataHelper();
-     bool result = dh.SaveData(recordDataset);
-     return result;
- }
+    gvRefUpload.Visible = false;
+    btnSave.Visible = false;
+}
